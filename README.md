@@ -1,8 +1,10 @@
 # Nexora Crawl
 
-A simple HTTP service that turns web pages into clean, structured data. You give it a URL, and it returns markdown, HTML, plain text, links, or metadata. It can also search the web and optionally scrape every result.
+A self-hostable alternative to Firecrawl. Nexora Crawl is a simple HTTP service that turns web pages into clean, structured data. You give it a URL, and it returns markdown, HTML, plain text, links, or metadata. It can also search the web and optionally scrape every result.
 
 Built on top of [Obscura](https://github.com/berstend/obscura) for headless browser rendering and [SearXNG](https://github.com/searxng/searxng) for web search.
+
+Source code: [https://github.com/ioi-labs/nexora-crawl](https://github.com/ioi-labs/nexora-crawl)
 
 ---
 
@@ -27,7 +29,7 @@ docker run -d \
   -p 8080:8080 \
   -e NEXORA_CRAWL_API_KEY=your-secret-key \
   -e NEXORA_CRAWL_SEARXNG_URL=https://your-searxng-instance.example.com \
-  ghcr.io/your-username/nexora-crawl:latest
+  ghcr.io/ioi-labs/nexora-crawl:latest
 ```
 
 Then open `http://localhost:8080/reference` for the interactive API docs.
@@ -190,7 +192,7 @@ This project is supported by:
 
 > **[Your company name here]**
 >
-> Interested in sponsoring Nexora Crawl? Open an issue or email us at sponsor@example.com.
+> Interested in sponsoring Nexora Crawl? Open an issue or email us at hi@ioi.co.id.
 
 ---
 
