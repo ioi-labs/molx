@@ -3,8 +3,13 @@ nexora-crawl
 *.exe
 
 # Dependency binaries (should be copied/provided at deploy time)
+# Ignore the old root-level binaries and any architecture-specific Obscura binaries.
 deps/obscura
 deps/obscura-worker
+deps/obscura/linux/*/obscura
+deps/obscura/linux/*/obscura-worker
+# Keep placeholder README files so the per-arch directories exist.
+!deps/obscura/linux/*/README.md
 
 # Environment
 .env
