@@ -1,0 +1,687 @@
+openapi: 3.1.0
+info:
+  title: Nexora Crawl API
+  description: REST API wrapper for the Obscura headless browser CLI.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+paths:
+  /health:
+    get:
+      summary: Health check
+      description: Returns the service status and whether the Obscura binary is available.
+      security: []
+      responses:
+        '200':
+          description: Service status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+  /fetch:
+    post:
+      summary: Fetch a single URL
+      description: Runs `obscura fetch` for one URL and returns the rendered content or evaluated result.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FetchRequest'
+      responses:
+        '200':
+          description: Fetch result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FetchResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+  /scrape:
+    post:
+      summary: Scrape multiple URLs
+      description: Runs `obscura scrape` over many URLs in parallel.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScrapeRequest'
+      responses:
+        '200':
+          description: Scrape result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScrapeResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+  /v2/scrape:
+    post:
+      summary: Scrape a single URL (Firecrawl v2 compatible)
+      description: |
+        Renders one URL through Obscura and returns extracted content in the
+        Firecrawl v2 response shape. Supported formats are markdown, html, text,
+        and links. Unsupported fields are accepted but ignored.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/V2ScrapeRequest'
+      responses:
+        '200':
+          description: Scraped content
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V2ScrapeResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+  /v2/batch/scrape:
+    post:
+      summary: Start a batch scrape job (Firecrawl v2 compatible)
+      description: |
+        Accepts an array of URLs and starts an asynchronous batch scrape job.
+        All valid URLs are processed in parallel with bounded concurrency.
+        Poll `GET /v2/batch/scrape/{id}` for status and results.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchScrapeRequest'
+      responses:
+        '200':
+          description: Batch scrape job created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchScrapeResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /search:
+    post:
+      summary: Search the web
+      description: |
+        Searches the web and returns result titles, URLs, and snippets.
+        Include `scrapeOptions` with `formats: ["markdown"]` to scrape each
+        result page.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchRequest'
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /v2/batch/scrape/{id}:
+    get:
+      summary: Get batch scrape status
+      description: |
+        Returns the current status and accumulated results for a batch scrape
+        job. Jobs are kept in memory and expire after 24 hours.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Batch scrape status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchScrapeStatusResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: API key via Authorization Bearer token header.
+  schemas:
+    FetchRequest:
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          format: uri
+          description: Absolute http(s) URL to fetch.
+        dump:
+          type: string
+          enum: [html, text, links, markdown, original, assets, cookies]
+          default: html
+          description: Output format.
+        selector:
+          type: string
+          description: CSS selector to narrow the output.
+        wait:
+          type: integer
+          description: Post-load settle seconds.
+        timeout:
+          type: integer
+          description: Per-fetch timeout in seconds.
+        wait_until:
+          type: string
+          enum: [domcontentloaded, load, networkidle2, networkidle0]
+          default: load
+          description: Navigation wait condition.
+        eval:
+          type: string
+          description: JavaScript expression to evaluate in the page context.
+        proxy:
+          type: string
+          description: Proxy URL, e.g. `http://user:pass@proxy:8080`.
+        stealth:
+          type: boolean
+          default: false
+          description: Enable stealth mode.
+        user_agent:
+          type: string
+          description: Override User-Agent string.
+        storage_dir:
+          type: string
+          description: Directory to persist cookies and localStorage.
+    FetchResponse:
+      type: object
+      required:
+        - ok
+      properties:
+        ok:
+          type: boolean
+        url:
+          type: string
+        title:
+          type: string
+        result:
+          description: Rendered content, evaluated value, or error context.
+          oneOf:
+            - type: string
+            - type: object
+            - type: array
+        error:
+          type: string
+        elapsed_ms:
+          type: integer
+          format: int64
+    ScrapeRequest:
+      type: object
+      required:
+        - urls
+      properties:
+        urls:
+          type: array
+          items:
+            type: string
+            format: uri
+          description: List of absolute http(s) URLs to scrape.
+        eval:
+          type: string
+          description: JavaScript expression to evaluate on each page.
+        concurrency:
+          type: integer
+          description: Internal Obscura worker concurrency.
+        timeout:
+          type: integer
+          description: Per-URL timeout in seconds.
+        format:
+          type: string
+          enum: [json, tsv]
+          default: json
+          description: Output format.
+        proxy:
+          type: string
+          description: Proxy URL.
+        stealth:
+          type: boolean
+          default: false
+          description: Enable stealth mode.
+        user_agent:
+          type: string
+          description: Override User-Agent string.
+    ScrapeResponse:
+      type: object
+      required:
+        - ok
+      properties:
+        ok:
+          type: boolean
+        total_urls:
+          type: integer
+        total_time_ms:
+          type: integer
+          format: int64
+        results:
+          type: array
+          items:
+            type: object
+        error:
+          type: string
+    HealthResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: [ok, "missing binary"]
+    V2ScrapeRequest:
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          format: uri
+          description: Absolute http(s) URL to scrape.
+        formats:
+          type: array
+          items:
+            type: string
+            enum: [markdown, html, text, links]
+          description: Content formats to return. Default is [markdown].
+        onlyMainContent:
+          type: boolean
+          default: false
+          description: Restrict extraction to main/article content.
+        includeTags:
+          type: array
+          items:
+            type: string
+          description: CSS selectors to include.
+        excludeTags:
+          type: array
+          items:
+            type: string
+          description: CSS selectors to remove.
+        waitFor:
+          type: integer
+          description: Post-load wait in milliseconds.
+        timeout:
+          type: integer
+          description: Total timeout in milliseconds.
+        mobile:
+          type: boolean
+          default: false
+          description: Use a mobile User-Agent.
+        proxy:
+          type: string
+          description: Proxy URL.
+        blockAds:
+          type: boolean
+          default: false
+          description: Enable stealth/tracker blocking.
+        removeBase64Images:
+          type: boolean
+          default: false
+          description: Strip inline base64 images.
+        redactPII:
+          type: boolean
+          default: false
+          description: Basic PII redaction in text/markdown output.
+        actions:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                enum: [wait, click]
+              milliseconds:
+                type: integer
+              selector:
+                type: string
+          description: Pre-extraction actions (wait or click).
+    V2ScrapeResponse:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: '#/components/schemas/V2ScrapeData'
+        error:
+          type: string
+    V2ScrapeData:
+      type: object
+      properties:
+        markdown:
+          type: string
+        html:
+          type: string
+        text:
+          type: string
+        links:
+          type: array
+          items:
+            type: string
+        metadata:
+          $ref: '#/components/schemas/V2ScrapeMetadata'
+    V2ScrapeMetadata:
+      type: object
+      properties:
+        title:
+          type: string
+        language:
+          type: string
+        sourceURL:
+          type: string
+        url:
+          type: string
+        statusCode:
+          type: integer
+        favicon:
+          type: string
+        viewport:
+          type: string
+        contentType:
+          type: string
+    BatchScrapeRequest:
+      type: object
+      required:
+        - urls
+      properties:
+        urls:
+          type: array
+          items:
+            type: string
+            format: uri
+          description: URLs to scrape. Only the first URL is processed.
+        ignoreInvalidURLs:
+          type: boolean
+          default: true
+          description: Skip invalid URLs instead of failing the whole request.
+        maxConcurrency:
+          type: integer
+          description: Concurrency limit (accepted but not enforced).
+        formats:
+          type: array
+          items:
+            type: string
+            enum: [markdown, html, text, links]
+          default: [markdown]
+        onlyMainContent:
+          type: boolean
+          default: false
+        includeTags:
+          type: array
+          items:
+            type: string
+        excludeTags:
+          type: array
+          items:
+            type: string
+        waitFor:
+          type: integer
+          description: Post-load wait in milliseconds.
+        timeout:
+          type: integer
+          description: Total timeout in milliseconds.
+        mobile:
+          type: boolean
+          default: false
+        proxy:
+          type: string
+        blockAds:
+          type: boolean
+          default: false
+        actions:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                enum: [wait, click]
+              milliseconds:
+                type: integer
+              selector:
+                type: string
+    BatchScrapeResponse:
+      type: object
+      required:
+        - success
+        - id
+        - url
+      properties:
+        success:
+          type: boolean
+        id:
+          type: string
+          format: uuid
+        url:
+          type: string
+          format: uri
+        invalidURLs:
+          type: array
+          items:
+            type: string
+    BatchScrapeStatusResponse:
+      type: object
+      required:
+        - status
+        - total
+        - completed
+        - createdAt
+        - expiresAt
+        - duration
+      properties:
+        status:
+          type: string
+          enum: [scraping, completed, failed]
+        total:
+          type: integer
+        completed:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+        expiresAt:
+          type: string
+          format: date-time
+        duration:
+          type: number
+          format: float
+        next:
+          type: string
+          nullable: true
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              markdown:
+                type: string
+              html:
+                type: string
+                nullable: true
+              rawHtml:
+                type: string
+                nullable: true
+              links:
+                type: array
+                items:
+                  type: string
+              metadata:
+                $ref: '#/components/schemas/V2ScrapeMetadata'
+    ErrorResponse:
+      type: object
+      required:
+        - ok
+        - error
+      properties:
+        ok:
+          type: boolean
+          default: false
+        error:
+          type: string
+    SearchRequest:
+      type: object
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          description: Search query passed to SearXNG.
+        limit:
+          type: integer
+          default: 10
+          maximum: 100
+          minimum: 1
+          description: Maximum number of results to return.
+        language:
+          type: string
+          description: SearXNG language code, e.g. en-US.
+        time_range:
+          type: string
+          enum: [day, month, year]
+          description: Time filter for engines that support it.
+        safesearch:
+          type: integer
+          enum: [0, 1, 2]
+          default: 0
+          description: Safe search level.
+        scrapeOptions:
+          type: object
+          properties:
+            formats:
+              type: array
+              items:
+                type: string
+                enum: [markdown, html, text, links]
+            onlyMainContent:
+              type: boolean
+              default: false
+            includeTags:
+              type: array
+              items:
+                type: string
+            excludeTags:
+              type: array
+              items:
+                type: string
+            waitFor:
+              type: integer
+              description: Post-load wait in milliseconds.
+            timeout:
+              type: integer
+              description: Per-result timeout in milliseconds.
+            mobile:
+              type: boolean
+              default: false
+            proxy:
+              type: string
+              description: Proxy URL.
+            blockAds:
+              type: boolean
+              default: false
+    SearchResponse:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              title:
+                type: string
+              url:
+                type: string
+              description:
+                type: string
+              markdown:
+                type: string
+                nullable: true
+              html:
+                type: string
+                nullable: true
+              text:
+                type: string
+                nullable: true
+              links:
+                type: array
+                items:
+                  type: string
+              metadata:
+                $ref: '#/components/schemas/V2ScrapeMetadata'
+        error:
+          type: string
+          nullable: true
+  responses:
+    BadRequest:
+      description: Invalid request body, missing field, or forbidden URL.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Missing or invalid API key.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ServiceUnavailable:
+      description: Search backend not configured or unavailable.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    MethodNotAllowed:
+      description: HTTP method not allowed for this endpoint.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+security:
+  - bearerAuth: []

@@ -1,0 +1,13 @@
+# Binaries
+nexora-crawl
+*.exe
+
+# Dependency binaries (should be copied/provided at deploy time)
+deps/obscura
+deps/obscura-worker
+
+# Environment
+.env
+
+# Go
+vendor/
