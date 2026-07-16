@@ -43,18 +43,21 @@ COPY --from=builder /app/deps/scalar-standalone.js /app/deps/scalar-standalone.j
 # Copy the correct Obscura binary for the target architecture.
 # IMPORTANT: these must be Linux binaries for the matching architecture,
 # not the macOS ones.
-# Place binaries under:
-#   deps/obscura/linux/amd64/obscura
-#   deps/obscura/linux/amd64/obscura-worker
-#   deps/obscura/linux/arm64/obscura
-#   deps/obscura/linux/arm64/obscura-worker
+# Place the main binary under:
+#   deps/obscura/linux/<amd64|arm64>/obscura
+# The worker binary is only needed for the legacy multi-URL scrape command
+# and is copied only when it is provided.
 ARG OBSCURA_DIR=deps/obscura/linux
 ARG TARGETARCH
 COPY ${OBSCURA_DIR}/${TARGETARCH}/obscura /app/deps/obscura
-COPY ${OBSCURA_DIR}/${TARGETARCH}/obscura-worker /app/deps/obscura-worker
+RUN --mount=type=bind,source=${OBSCURA_DIR}/${TARGETARCH},target=/tmp/obscura \
+    if [ -f /tmp/obscura/obscura-worker ]; then \
+      cp /tmp/obscura/obscura-worker /app/deps/obscura-worker; \
+      chmod +x /app/deps/obscura-worker; \
+    fi
 
 # Ensure binaries are executable
-RUN chmod +x /app/deps/obscura /app/deps/obscura-worker /app/nexora-crawl
+RUN chmod +x /app/deps/obscura /app/nexora-crawl
 
 # Switch to non-root user
 USER appuser
