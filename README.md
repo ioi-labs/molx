@@ -6,6 +6,8 @@ Built on top of [Obscura](https://github.com/berstend/obscura) for headless brow
 
 Source code: [https://github.com/ioi-labs/nexora-crawl](https://github.com/ioi-labs/nexora-crawl)
 
+Interactive API documentation is available at `/reference` once the server is running.
+
 ---
 
 ## What it does
