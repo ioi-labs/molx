@@ -189,7 +189,7 @@ func (r *Runner) runOne(ctx context.Context, job *JobState, url string, req mode
 		WaitFor:         req.WaitFor,
 		Timeout:         req.Timeout,
 		Mobile:          req.Mobile,
-		Proxy:           req.Proxy,
+		Proxy:           firstNonEmpty(req.Proxy, r.scraper.Config.Proxy),
 		BlockAds:        req.BlockAds,
 		Actions:         req.Actions,
 	})

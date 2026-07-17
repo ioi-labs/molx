@@ -17,10 +17,12 @@ import (
 	"nexora-crawl/batch"
 	"nexora-crawl/config"
 	"nexora-crawl/handlers"
+	"nexora-crawl/internal/searchfactory"
 	localMiddleware "nexora-crawl/middleware"
 	"nexora-crawl/memstats"
 	"nexora-crawl/obscura"
 	"nexora-crawl/scraper"
+	"nexora-crawl/search"
 	"nexora-crawl/telemetry"
 )
 
@@ -41,6 +43,15 @@ func main() {
 	memstats.Log("memory at startup")
 
 	client := obscura.NewClient(cfg.ObscuraBinaryPath, cfg.Timeout)
+
+	searchClient, err := search.NewHTTPClient(cfg.Proxy, cfg.SearchTimeout)
+	if err != nil {
+		slog.Error("search client init failed", "error", err)
+		os.Exit(1)
+	}
+	searchCache := search.NewSharedCache()
+	engines := searchfactory.BuildEngines(searchCache, searchClient, cfg.SearchEngines)
+	slog.Info("search engines configured", "engines", cfg.SearchEngines)
 
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
@@ -71,8 +82,8 @@ func main() {
 	batchCreate := &batch.CreateHandler{Runner: batchRunner}
 	batchStatus := &batch.StatusHandler{Store: batchStore}
 
-	v2Search := &handlers.V2SearchHandler{Config: cfg, Scraper: v2Scraper}
-	searxSearch := &handlers.SearXNGSearchHandler{Config: cfg}
+	v2Search := &handlers.V2SearchHandler{Config: cfg, Scraper: v2Scraper, Engines: engines}
+	legacySearch := &handlers.LegacySearchHandler{Config: cfg, Engines: engines}
 
 	r.With(api).Post("/fetch", fetch.ServeHTTP)
 	r.With(api).Post("/scrape", scrape.ServeHTTP)
@@ -80,7 +91,7 @@ func main() {
 	r.With(api).Post("/v2/batch/scrape", batchCreate.ServeHTTP)
 	r.With(api).Get("/v2/batch/scrape/{id}", batchStatus.ServeHTTP)
 	r.With(api).Post("/v2/search", v2Search.ServeHTTP)
-	r.With(api).Handle("/search", searxSearch)
+	r.With(api).Handle("/search", legacySearch)
 	r.Get("/health", health.ServeHTTP)
 	r.Get("/reference", handlers.Reference)
 	r.Get("/scalar-standalone.js", handlers.ScalarJS)

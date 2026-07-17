@@ -50,7 +50,7 @@ func (h *V2ScrapeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		WaitFor:         req.WaitFor,
 		Timeout:         req.Timeout,
 		Mobile:          req.Mobile,
-		Proxy:           req.Proxy,
+		Proxy:           firstNonEmpty(req.Proxy, h.Config.Proxy),
 		BlockAds:        req.BlockAds,
 		Actions:         req.Actions,
 	})

@@ -2,7 +2,7 @@
 
 A self-hostable alternative to Firecrawl. Nexora Crawl is a simple HTTP service that turns web pages into clean, structured data. You give it a URL, and it returns markdown, HTML, plain text, links, or metadata. It can also search the web and optionally scrape every result.
 
-Built on top of [Obscura](https://github.com/berstend/obscura) for headless browser rendering and [SearXNG](https://github.com/searxng/searxng) for web search.
+Built on top of [Obscura](https://github.com/berstend/obscura) for headless browser rendering. Web search is performed natively through Brave, DuckDuckGo, and Startpage (no external SearXNG instance required).
 
 Source code: [https://github.com/ioi-labs/nexora-crawl](https://github.com/ioi-labs/nexora-crawl)
 
@@ -14,7 +14,7 @@ Interactive API documentation is available at `/reference` once the server is ru
 
 - **Scrape one page**: fetch rendered content as markdown, HTML, text, or links.
 - **Batch scrape**: process many URLs in the background and poll for results.
-- **Search the web**: query SearXNG and optionally scrape each result page.
+- **Search the web**: query Brave, DuckDuckGo, and Startpage natively and optionally scrape each result page.
 - **API key protection**: lock the API with a bearer token.
 - **OpenTelemetry support**: send traces to any OTLP-compatible backend (optional).
 
@@ -30,7 +30,6 @@ The easiest way to run the server is with the published container image.
 docker run -d \
   -p 8080:8080 \
   -e NEXORA_CRAWL_API_KEY=your-secret-key \
-  -e NEXORA_CRAWL_SEARXNG_URL=https://your-searxng-instance.example.com \
   ghcr.io/ioi-labs/nexora-crawl:latest
 ```
 
@@ -60,7 +59,10 @@ Set these environment variables to configure the server.
 | `NEXORA_CRAWL_API_KEY` | empty | Bearer token required by all scrape/search endpoints |
 | `NEXORA_CRAWL_OBSCURA_BIN` | `deps/obscura` | Path to the Obscura binary |
 | `NEXORA_CRAWL_TIMEOUT_MS` | `60000` | Default timeout for Obscura calls |
-| `NEXORA_CRAWL_SEARXNG_URL` | empty | SearXNG instance URL for `/search` |
+| `NEXORA_CRAWL_SEARCH_ENGINES` | `duckduckgo,brave,startpage` | Comma-separated native engines |
+| `NEXORA_CRAWL_SEARCH_TIMEOUT_MS` | `30000` | Timeout per engine query |
+| `NEXORA_CRAWL_SEARCH_DEFAULT_LIMIT` | `10` | Default number of search results |
+| `NEXORA_CRAWL_PROXY` | empty | Optional proxy for search and scrape |
 | `NEXORA_CRAWL_OTEL_ENDPOINT` | empty | OTLP endpoint for traces |
 | `NEXORA_CRAWL_ALLOWED_ORIGIN` | empty | CORS origins, comma separated |
 
