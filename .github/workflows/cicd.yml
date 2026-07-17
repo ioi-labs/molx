@@ -81,7 +81,7 @@ jobs:
           GOARCH: ${{ matrix.goarch }}
         run: |
           output="${{ matrix.archive }}"
-          mkdir -p "${output}/deps"
+          mkdir -p "${output}/deps" "${output}/docs"
           CGO_ENABLED=0 go build -ldflags="-s -w" -o "${output}/nexora-crawl" .
           cp "deps/obscura/${{ matrix.goos }}/${{ matrix.goarch }}/obscura" "${output}/deps/obscura"
           cp "deps/obscura/${{ matrix.goos }}/${{ matrix.goarch }}/obscura-worker" "${output}/deps/obscura-worker"
