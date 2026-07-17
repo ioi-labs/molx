@@ -8,8 +8,11 @@ deps/obscura
 deps/obscura-worker
 deps/obscura/linux/*/obscura
 deps/obscura/linux/*/obscura-worker
+deps/obscura/darwin/*/obscura
+deps/obscura/darwin/*/obscura-worker
 # Keep placeholder README files so the per-arch directories exist.
 !deps/obscura/linux/*/README.md
+!deps/obscura/darwin/*/README.md
 
 # Environment
 .env

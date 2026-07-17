@@ -11,6 +11,10 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -28,6 +32,55 @@ jobs:
 
       - name: Run tests
         run: go test ./...
+
+  build-binaries:
+    needs: test
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+            archive: nexora-crawl-linux-amd64
+          - goos: linux
+            goarch: arm64
+            archive: nexora-crawl-linux-arm64
+          - goos: darwin
+            goarch: amd64
+            archive: nexora-crawl-macos-x86_64
+          - goos: darwin
+            goarch: arm64
+            archive: nexora-crawl-macos-arm64
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: Build binary
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          output="${{ matrix.archive }}"
+          mkdir -p "${output}/deps"
+          CGO_ENABLED=0 go build -ldflags="-s -w" -o "${output}/nexora-crawl" .
+          cp "deps/obscura/${{ matrix.goos }}/${{ matrix.goarch }}/obscura" "${output}/deps/obscura"
+          cp "deps/obscura/${{ matrix.goos }}/${{ matrix.goarch }}/obscura-worker" "${output}/deps/obscura-worker"
+          cp docs/openapi.yaml "${output}/docs/openapi.yaml"
+          cp deps/scalar-standalone.js "${output}/deps/scalar-standalone.js"
+          chmod +x "${output}/nexora-crawl" "${output}/deps/obscura" "${output}/deps/obscura-worker"
+          tar -czf "${output}.tar.gz" "${output}"
+
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.archive }}.tar.gz
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   build-image:
     needs: test
