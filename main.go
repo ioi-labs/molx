@@ -71,14 +71,16 @@ func main() {
 	batchCreate := &batch.CreateHandler{Runner: batchRunner}
 	batchStatus := &batch.StatusHandler{Store: batchStore}
 
-	search := &handlers.SearchHandler{Config: cfg, Scraper: v2Scraper}
+	v2Search := &handlers.V2SearchHandler{Config: cfg, Scraper: v2Scraper}
+	searxSearch := &handlers.SearXNGSearchHandler{Config: cfg}
 
 	r.With(api).Post("/fetch", fetch.ServeHTTP)
 	r.With(api).Post("/scrape", scrape.ServeHTTP)
 	r.With(api).Post("/v2/scrape", scrape.ServeHTTP)
 	r.With(api).Post("/v2/batch/scrape", batchCreate.ServeHTTP)
 	r.With(api).Get("/v2/batch/scrape/{id}", batchStatus.ServeHTTP)
-	r.With(api).Post("/search", search.ServeHTTP)
+	r.With(api).Post("/v2/search", v2Search.ServeHTTP)
+	r.With(api).Handle("/search", searxSearch)
 	r.Get("/health", health.ServeHTTP)
 	r.Get("/reference", handlers.Reference)
 	r.Get("/scalar-standalone.js", handlers.ScalarJS)

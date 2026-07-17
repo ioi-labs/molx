@@ -116,8 +116,96 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
   /search:
+    get:
+      summary: Search the web via SearXNG
+      description: |
+        Proxies a query to the configured SearXNG instance using the native
+        SearXNG API. Supports query parameters such as `q`, `format`,
+        `language`, `time_range`, `safesearch`, and `pageno`.
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Search query.
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [json, html, csv, rss]
+          description: Response format.
+        - name: language
+          in: query
+          schema:
+            type: string
+          description: Language code.
+        - name: time_range
+          in: query
+          schema:
+            type: string
+            enum: [day, month, year]
+          description: Time filter for engines that support it.
+        - name: safesearch
+          in: query
+          schema:
+            type: integer
+            enum: [0, 1, 2]
+          description: Safe search level.
+        - name: pageno
+          in: query
+          schema:
+            type: integer
+          description: Page number.
+      responses:
+        '200':
+          description: SearXNG response in the requested format.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
     post:
-      summary: Search the web
+      summary: Search the web via SearXNG (form endpoint)
+      description: |
+        Same as GET /search but accepts form-encoded parameters in the request
+        body, matching the SearXNG API.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                q:
+                  type: string
+                format:
+                  type: string
+                language:
+                  type: string
+                time_range:
+                  type: string
+                safesearch:
+                  type: integer
+                pageno:
+                  type: integer
+      responses:
+        '200':
+          description: SearXNG response in the requested format.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /v2/search:
+    post:
+      summary: Search the web (Firecrawl v2 compatible)
       description: |
         Searches the web and returns result titles, URLs, and snippets.
         Include `scrapeOptions` with `formats: ["markdown"]` to scrape each
@@ -127,14 +215,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SearchRequest'
+              $ref: '#/components/schemas/V2SearchRequest'
       responses:
         '200':
           description: Search results
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SearchResponse'
+                $ref: '#/components/schemas/V2SearchResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -556,7 +644,7 @@ components:
           default: false
         error:
           type: string
-    SearchRequest:
+    V2SearchRequest:
       type: object
       required:
         - query
@@ -616,7 +704,7 @@ components:
             blockAds:
               type: boolean
               default: false
-    SearchResponse:
+    V2SearchResponse:
       type: object
       required:
         - success
