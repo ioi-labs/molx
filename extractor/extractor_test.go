@@ -16,7 +16,7 @@ func TestExtractMetadata(t *testing.T) {
   <body><h1>Hello</h1></body>
 </html>`
 
-	m := ExtractMetadata(html, "https://example.com")
+	m := ExtractMetadata(html, "https://example.com", 200, "text/html")
 	if m.Title != "Example Domain" {
 		t.Errorf("title = %q, want %q", m.Title, "Example Domain")
 	}
@@ -26,7 +26,7 @@ func TestExtractMetadata(t *testing.T) {
 	if m.Viewport != "width=device-width, initial-scale=1" {
 		t.Errorf("viewport = %q", m.Viewport)
 	}
-	if m.Favicon != "/favicon.ico" {
+	if m.Favicon != "https://example.com/favicon.ico" {
 		t.Errorf("favicon = %q", m.Favicon)
 	}
 	if m.SourceURL != "https://example.com" {
@@ -65,6 +65,32 @@ func TestExtractLinks(t *testing.T) {
 	}
 	if links[1] != "https://external.com/page" {
 		t.Errorf("second link = %q", links[1])
+	}
+}
+
+func TestCompressMarkdownWhitespace(t *testing.T) {
+	in := "Title\n\n\n\n   \nLine one\n\n\nLine two\n   \n\n"
+	got := CompressMarkdownWhitespace(in)
+	want := "Title\n\nLine one\n\nLine two"
+	if got != want {
+		t.Errorf("CompressMarkdownWhitespace = %q, want %q", got, want)
+	}
+}
+
+func TestCompressMarkdownWhitespaceJoinsLabels(t *testing.T) {
+	in := "Leads\n\n1,284\n\nConversion\n\n32%"
+	got := CompressMarkdownWhitespace(in)
+	want := "Leads 1,284\n\nConversion 32%"
+	if got != want {
+		t.Errorf("CompressMarkdownWhitespace = %q, want %q", got, want)
+	}
+}
+
+func TestCompressMarkdownWhitespacePreservesParagraphs(t *testing.T) {
+	in := "Title\n\nLine one\n\nLine two"
+	got := CompressMarkdownWhitespace(in)
+	if got != in {
+		t.Errorf("CompressMarkdownWhitespace = %q, want %q", got, in)
 	}
 }
 

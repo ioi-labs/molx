@@ -27,13 +27,15 @@ func NewClient(binaryPath string, timeout time.Duration) *Client {
 }
 
 // Fetch runs `obscura fetch` and returns the raw stdout.
+// ponytail: keep raw []byte API for callers; JSON dump parsing can be added later if needed.
 func (c *Client) Fetch(ctx context.Context, req models.FetchRequest) ([]byte, error) {
 	args := []string{"fetch", req.URL}
 
-	dump := normalizeDump(req.Dump)
-	if dump != "" {
-		args = append(args, "--dump", dump)
+	dump := strings.ToLower(req.Dump)
+	if dump == "" {
+		dump = "html"
 	}
+	args = append(args, "--dump", dump)
 	if req.Selector != "" {
 		args = append(args, "--selector", req.Selector)
 	}
@@ -112,13 +114,3 @@ func (c *Client) verifyExecutable() error {
 	return nil
 }
 
-func normalizeDump(d string) string {
-	switch strings.ToLower(d) {
-	case "html", "text", "links", "markdown", "original", "assets", "cookies":
-		return strings.ToLower(d)
-	case "":
-		return "html"
-	default:
-		return strings.ToLower(d)
-	}
-}

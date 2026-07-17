@@ -69,13 +69,14 @@ func (s *V2Scraper) Run(ctx context.Context, url string, opts Options) (*models.
 		return nil, err
 	}
 
-	md := string(data)
+	md := extractor.ResolveMarkdownURLs(string(data), url)
 	if opts.OnlyMainContent {
 		md, _ = extractor.ApplyFilters(md, []string{"nav", "header", "footer", "aside", "[role='navigation']"})
 	}
 	if len(opts.ExcludeTags) > 0 {
 		md, _ = extractor.ApplyFilters(md, opts.ExcludeTags)
 	}
+	md = extractor.CompressMarkdownWhitespace(md)
 
 	html := ""
 	if hasFormat(formats, "html") || hasFormat(formats, "text") || hasFormat(formats, "links") {
@@ -100,7 +101,23 @@ func (s *V2Scraper) Run(ctx context.Context, url string, opts Options) (*models.
 		}
 	}
 
-	metadata := extractor.ExtractMetadata(firstNonEmpty(html, md), url)
+	htmlForMeta := html
+	if htmlForMeta == "" {
+		htmlBytes, htmlErr := s.Client.Fetch(ctx, models.FetchRequest{
+			URL:       url,
+			Dump:      "html",
+			Timeout:   timeout / 1000,
+			Wait:      wait,
+			Eval:      preEval,
+			Proxy:     strings.TrimSpace(opts.Proxy),
+			Stealth:   opts.BlockAds,
+			UserAgent: userAgent,
+		})
+		if htmlErr == nil {
+			htmlForMeta = string(htmlBytes)
+		}
+	}
+	metadata := extractor.ExtractMetadata(firstNonEmpty(htmlForMeta, md), url, 200, "text/html")
 
 	out := &models.V2ScrapeData{Metadata: metadata}
 	for _, f := range formats {

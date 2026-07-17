@@ -56,10 +56,38 @@ type V2ScrapeData struct {
 
 // V2ScrapeMetadata holds page-level metadata.
 type V2ScrapeMetadata struct {
-	Title     string `json:"title,omitempty"`
-	Language  string `json:"language,omitempty"`
-	SourceURL string `json:"sourceURL,omitempty"`
-	URL       string `json:"url,omitempty"`
-	Favicon   string `json:"favicon,omitempty"`
-	Viewport  string `json:"viewport,omitempty"`
+	Title              string `json:"title,omitempty"`
+	Description        string `json:"description,omitempty"`
+	Language           string `json:"language,omitempty"`
+	SourceURL          string `json:"sourceURL,omitempty"`
+	URL                string `json:"url,omitempty"`
+	Favicon            string `json:"favicon,omitempty"`
+	Viewport           string `json:"viewport,omitempty"`
+	OgLocale           string `json:"ogLocale,omitempty"`
+	OgType             string `json:"og:type,omitempty"`
+	OgURL              string `json:"og:url,omitempty"`
+	OgImage            string `json:"og:image,omitempty"`
+	OgImageURL         string `json:"ogImage,omitempty"`
+	OgTitle            string `json:"og:title,omitempty"`
+	OgDescription      string `json:"og:description,omitempty"`
+	OgSiteName         string `json:"og:site_name,omitempty"`
+	OgSiteNameAlt      string `json:"ogSiteName,omitempty"`
+	OgDescriptionAlt   string `json:"ogDescription,omitempty"`
+	OgURLAlt           string `json:"ogUrl,omitempty"`
+	Robots             string `json:"robots,omitempty"`
+	Keywords           string `json:"keywords,omitempty"`
+	Author             string `json:"author,omitempty"`
+	TwitterCard        string `json:"twitter:card,omitempty"`
+	TwitterTitle       string `json:"twitter:title,omitempty"`
+	TwitterDescription string `json:"twitter:description,omitempty"`
+	TwitterImage       string `json:"twitter:image,omitempty"`
+	GoogleSiteVerification string `json:"google-site-verification,omitempty"`
+	Canonical          string `json:"canonical,omitempty"`
+	StatusCode         int    `json:"statusCode,omitempty"`
+	ContentType        string `json:"contentType,omitempty"`
+	ProxyUsed          string `json:"proxyUsed,omitempty"`
+	CacheState         string `json:"cacheState,omitempty"`
+	CachedAt           string `json:"cachedAt,omitempty"`
+	CreditsUsed        int    `json:"creditsUsed,omitempty"`
+	ConcurrencyLimited bool   `json:"concurrencyLimited,omitempty"`
 }

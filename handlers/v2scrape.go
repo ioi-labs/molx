@@ -81,13 +81,14 @@ func (h *V2ScrapeHandler) execute(w http.ResponseWriter, r *http.Request, req *m
 		return nil
 	}
 
-	md := string(data)
+	md := extractor.ResolveMarkdownURLs(string(data), targetURL)
 	if req.OnlyMainContent {
 		md, _ = extractor.ApplyFilters(md, []string{"nav", "header", "footer", "aside", "[role='navigation']"})
 	}
 	if len(req.ExcludeTags) > 0 {
 		md, _ = extractor.ApplyFilters(md, req.ExcludeTags)
 	}
+	md = extractor.CompressMarkdownWhitespace(md)
 
 	html := ""
 	if hasFormat(formats, "html") || hasFormat(formats, "text") || hasFormat(formats, "links") {
@@ -113,7 +114,24 @@ func (h *V2ScrapeHandler) execute(w http.ResponseWriter, r *http.Request, req *m
 		}
 	}
 
-	metadata := extractor.ExtractMetadata(firstNonEmpty(html, md), targetURL)
+	htmlForMeta := html
+	if htmlForMeta == "" {
+		// ponytail: re-fetch html once for metadata when only markdown was requested.
+		htmlBytes, htmlErr := h.Client.Fetch(ctx, models.FetchRequest{
+			URL:       targetURL,
+			Dump:      "html",
+			Timeout:   timeout / 1000,
+			Wait:      wait,
+			Eval:      preEval,
+			Proxy:     strings.TrimSpace(req.Proxy),
+			Stealth:   req.BlockAds,
+			UserAgent: userAgent,
+		})
+		if htmlErr == nil {
+			htmlForMeta = string(htmlBytes)
+		}
+	}
+	metadata := extractor.ExtractMetadata(firstNonEmpty(htmlForMeta, md), targetURL, 200, "text/html")
 
 	out := &models.V2ScrapeData{Metadata: metadata}
 	for _, f := range formats {
