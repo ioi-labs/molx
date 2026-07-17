@@ -171,7 +171,7 @@ The response includes a job URL. Poll it to get the results.
 
 The Dockerfile supports two architectures: `linux/amd64` and `linux/arm64`.
 
-Before building, place the correct Linux Obscura binaries under:
+Before building, place the correct Linux Obscura binaries under. Both `obscura` and `obscura-worker` are required for each architecture.
 
 ```
 deps/obscura/linux/amd64/obscura

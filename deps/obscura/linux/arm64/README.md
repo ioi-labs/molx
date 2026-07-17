@@ -1,8 +1,11 @@
-# Placeholder for the Linux arm64 Obscura binary
+# Required Linux arm64 Obscura binaries
 
-Put the `obscura` and `obscura-worker` Linux arm64 binaries in this directory before building a multi-arch image locally.
+Both files below are required. The Docker build will fail if either file is missing.
 
-The CI workflow expects:
+- `obscura`
+- `obscura-worker`
+
+The CI workflow expects these exact paths:
 
 - `deps/obscura/linux/amd64/obscura`
 - `deps/obscura/linux/amd64/obscura-worker`
