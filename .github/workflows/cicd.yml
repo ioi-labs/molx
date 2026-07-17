@@ -37,7 +37,6 @@ jobs:
 
   build-binaries:
     needs: test
-    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -45,18 +44,22 @@ jobs:
           - goos: linux
             goarch: amd64
             archive: nexora-crawl-linux-amd64
+            artifact: dist-linux-amd64
             obscura_asset: obscura-x86_64-linux.tar.gz
           - goos: linux
             goarch: arm64
             archive: nexora-crawl-linux-arm64
+            artifact: dist-linux-arm64
             obscura_asset: obscura-aarch64-linux.tar.gz
           - goos: darwin
             goarch: amd64
             archive: nexora-crawl-macos-x86_64
+            artifact: dist-macos-x86_64
             obscura_asset: obscura-x86_64-macos.tar.gz
           - goos: darwin
             goarch: arm64
             archive: nexora-crawl-macos-arm64
+            artifact: dist-macos-arm64
             obscura_asset: obscura-aarch64-macos.tar.gz
     steps:
       - name: Checkout
@@ -90,14 +93,24 @@ jobs:
           chmod +x "${output}/nexora-crawl" "${output}/deps/obscura" "${output}/deps/obscura-worker"
           tar -czf "${output}.tar.gz" "${output}"
 
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.archive }}
+          if-no-files-found: error
+          retention-days: 1
+
       - name: Upload release asset
+        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           files: ${{ matrix.archive }}.tar.gz
           token: ${{ secrets.GITHUB_TOKEN }}
 
   build-image:
-    needs: test
+    needs: build-binaries
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -106,15 +119,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download Obscura Linux binaries
+      - name: Download amd64 dist
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-linux-amd64
+          path: dist/linux/amd64
+
+      - name: Download arm64 dist
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-linux-arm64
+          path: dist/linux/arm64
+
+      - name: Make binaries executable
         run: |
-          mkdir -p deps/obscura/linux/amd64 deps/obscura/linux/arm64
-          curl -fsSL -o /tmp/obscura-amd64.tar.gz "${OBSCURA_RELEASE_URL}/obscura-x86_64-linux.tar.gz"
-          curl -fsSL -o /tmp/obscura-arm64.tar.gz "${OBSCURA_RELEASE_URL}/obscura-aarch64-linux.tar.gz"
-          tar -xzf /tmp/obscura-amd64.tar.gz -C deps/obscura/linux/amd64
-          tar -xzf /tmp/obscura-arm64.tar.gz -C deps/obscura/linux/arm64
-          chmod +x deps/obscura/linux/amd64/obscura deps/obscura/linux/amd64/obscura-worker
-          chmod +x deps/obscura/linux/arm64/obscura deps/obscura/linux/arm64/obscura-worker
+          chmod +x dist/linux/amd64/nexora-crawl dist/linux/amd64/deps/obscura dist/linux/amd64/deps/obscura-worker
+          chmod +x dist/linux/arm64/nexora-crawl dist/linux/arm64/deps/obscura dist/linux/arm64/deps/obscura-worker
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -123,7 +143,6 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Log in to GHCR
-        if: github.event_name == 'push'
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
@@ -141,19 +160,20 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
 
-      - name: Build (and push on tag/main)
+      - name: Build and push
         uses: docker/build-push-action@v5
         with:
           context: .
+          file: Dockerfile.release
           platforms: linux/amd64,linux/arm64
-          push: ${{ github.event_name == 'push' }}
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
   build-image-pr:
-    needs: test
+    needs: build-binaries
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     permissions:
@@ -162,15 +182,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download Obscura Linux binaries
+      - name: Download amd64 dist
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-linux-amd64
+          path: dist/linux/amd64
+
+      - name: Download arm64 dist
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-linux-arm64
+          path: dist/linux/arm64
+
+      - name: Make binaries executable
         run: |
-          mkdir -p deps/obscura/linux/amd64 deps/obscura/linux/arm64
-          curl -fsSL -o /tmp/obscura-amd64.tar.gz "${OBSCURA_RELEASE_URL}/obscura-x86_64-linux.tar.gz"
-          curl -fsSL -o /tmp/obscura-arm64.tar.gz "${OBSCURA_RELEASE_URL}/obscura-aarch64-linux.tar.gz"
-          tar -xzf /tmp/obscura-amd64.tar.gz -C deps/obscura/linux/amd64
-          tar -xzf /tmp/obscura-arm64.tar.gz -C deps/obscura/linux/arm64
-          chmod +x deps/obscura/linux/amd64/obscura deps/obscura/linux/amd64/obscura-worker
-          chmod +x deps/obscura/linux/arm64/obscura deps/obscura/linux/arm64/obscura-worker
+          chmod +x dist/linux/amd64/nexora-crawl dist/linux/amd64/deps/obscura dist/linux/amd64/deps/obscura-worker
+          chmod +x dist/linux/arm64/nexora-crawl dist/linux/arm64/deps/obscura dist/linux/arm64/deps/obscura-worker
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -182,6 +209,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
+          file: Dockerfile.release
           platforms: linux/amd64,linux/arm64
           push: false
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:pr-check

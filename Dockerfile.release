@@ -1,0 +1,36 @@
+# syntax=docker/dockerfile:1
+
+# Dockerfile for CI release builds.
+# Expects prebuilt binaries to be available under dist/linux/<amd64|arm64>/
+# before running docker build.
+# For local builds from source, use Dockerfile instead.
+
+FROM alpine:3.21 AS runner
+
+WORKDIR /app
+
+# Install ca-certificates so HTTPS requests work
+RUN apk add --no-cache ca-certificates
+
+# Create non-root user
+RUN adduser -D -u 1000 appuser
+
+# Copy the correct prebuilt binary set for the target architecture.
+ARG TARGETARCH
+COPY dist/linux/${TARGETARCH}/nexora-crawl /app/nexora-crawl
+COPY dist/linux/${TARGETARCH}/deps/obscura /app/deps/obscura
+COPY dist/linux/${TARGETARCH}/deps/obscura-worker /app/deps/obscura-worker
+COPY dist/linux/${TARGETARCH}/docs/openapi.yaml /app/docs/openapi.yaml
+COPY dist/linux/${TARGETARCH}/deps/scalar-standalone.js /app/deps/scalar-standalone.js
+
+# Ensure binaries are executable
+RUN chmod +x /app/deps/obscura /app/deps/obscura-worker /app/nexora-crawl
+
+# Switch to non-root user
+USER appuser
+
+# Expose the default port (can be overridden via NEXORA_CRAWL_PORT env var)
+EXPOSE 8080
+
+# Run the server
+ENTRYPOINT ["/app/nexora-crawl"]
