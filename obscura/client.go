@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -65,6 +66,10 @@ func (c *Client) Fetch(ctx context.Context, req models.FetchRequest) ([]byte, er
 }
 
 func (c *Client) run(ctx context.Context, args []string) ([]byte, error) {
+	if err := c.verifyExecutable(); err != nil {
+		return nil, err
+	}
+
 	if _, ok := ctx.Deadline(); !ok {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithTimeout(ctx, c.timeout)
@@ -88,6 +93,23 @@ func (c *Client) run(ctx context.Context, args []string) ([]byte, error) {
 	}
 
 	return stdout.Bytes(), nil
+}
+
+func (c *Client) verifyExecutable() error {
+	info, err := os.Stat(c.binaryPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return fmt.Errorf("obscura binary not found at %s", c.binaryPath)
+		}
+		return fmt.Errorf("obscura binary stat failed: %w", err)
+	}
+	if info.IsDir() {
+		return fmt.Errorf("obscura path is a directory: %s", c.binaryPath)
+	}
+	if info.Mode()&0o111 == 0 {
+		return fmt.Errorf("obscura binary is not executable (run chmod +x %s)", c.binaryPath)
+	}
+	return nil
 }
 
 func normalizeDump(d string) string {

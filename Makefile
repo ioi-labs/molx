@@ -36,6 +36,8 @@ deps: ## Copy Obscura binary into deps/obscura/linux/<arch>/
 	@if [ -f "$(OBSCURA_BIN)-worker" ]; then \
 		cp "$(OBSCURA_BIN)-worker" $(DEPS_DIR)/obscura/linux/$(OBSCURA_ARCH)/obscura-worker; \
 	fi
+	@chmod +x $(DEPS_DIR)/obscura/linux/$(OBSCURA_ARCH)/obscura || true
+	@chmod +x $(DEPS_DIR)/obscura/linux/$(OBSCURA_ARCH)/obscura-worker || true
 
 clean: ## Remove built binary and copied dependencies
 	@echo "Cleaning..."

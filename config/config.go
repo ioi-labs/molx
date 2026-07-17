@@ -2,6 +2,8 @@ package config
 
 import (
 	"os"
+	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -22,9 +24,9 @@ type Config struct {
 }
 
 func Load() *Config {
-	return &Config{
+	cfg := &Config{
 		Port:              getEnv("NEXORA_CRAWL_PORT", "8080"),
-		ObscuraBinaryPath: getEnv("NEXORA_CRAWL_OBSCURA_BIN", "deps/obscura"),
+		ObscuraBinaryPath: getEnv("NEXORA_CRAWL_OBSCURA_BIN", ""),
 		OTelEndpoint:      getEnv("NEXORA_CRAWL_OTEL_ENDPOINT", ""),
 		APIKey:            getEnv("NEXORA_CRAWL_API_KEY", ""),
 		Timeout:           parseDurationMs(getEnv("NEXORA_CRAWL_TIMEOUT_MS", "60000")),
@@ -35,6 +37,9 @@ func Load() *Config {
 		SearchDefaultLimit: parseInt(getEnv("NEXORA_CRAWL_SEARCH_DEFAULT_LIMIT", "10")),
 		Proxy:              getEnv("NEXORA_CRAWL_PROXY", ""),
 	}
+
+	cfg.ObscuraBinaryPath = resolveObscuraBinary(cfg.ObscuraBinaryPath)
+	return cfg
 }
 
 func getEnv(key, defaultValue string) string {
@@ -42,6 +47,15 @@ func getEnv(key, defaultValue string) string {
 		return v
 	}
 	return defaultValue
+}
+
+func resolveObscuraBinary(override string) string {
+	if override != "" {
+		return override
+	}
+	goos := runtime.GOOS
+	goarch := runtime.GOARCH
+	return filepath.Join("deps", "obscura", goos, goarch, "obscura")
 }
 
 func parseDurationMs(s string) time.Duration {
