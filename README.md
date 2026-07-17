@@ -29,7 +29,7 @@ The easiest way to run the server is with the published container image.
 ```bash
 docker run -d \
   -p 8080:8080 \
-  -e NEXORA_CRAWL_API_KEY=your-secret-key \
+  -e API_KEY=your-secret-key \
   ghcr.io/ioi-labs/nexora-crawl:latest
 ```
 
@@ -44,7 +44,7 @@ You need Go 1.23 or later and the Obscura binaries for your platform.
 make deps
 
 # Start the server
-NEXORA_CRAWL_API_KEY=your-secret-key go run .
+API_KEY=your-secret-key go run .
 ```
 
 ---
@@ -55,22 +55,24 @@ Set these environment variables to configure the server.
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `NEXORA_CRAWL_PORT` | `8080` | HTTP port |
-| `NEXORA_CRAWL_API_KEY` | empty | Bearer token required by all scrape/search endpoints |
-| `NEXORA_CRAWL_OBSCURA_BIN` | `deps/obscura` | Path to the Obscura binary |
-| `NEXORA_CRAWL_TIMEOUT_MS` | `60000` | Default timeout for Obscura calls |
-| `NEXORA_CRAWL_SEARCH_ENGINES` | `duckduckgo,brave,startpage` | Comma-separated native engines |
-| `NEXORA_CRAWL_SEARCH_TIMEOUT_MS` | `30000` | Timeout per engine query |
-| `NEXORA_CRAWL_SEARCH_DEFAULT_LIMIT` | `10` | Default number of search results |
-| `NEXORA_CRAWL_PROXY` | empty | Optional proxy for search and scrape |
-| `NEXORA_CRAWL_OTEL_ENDPOINT` | empty | OTLP endpoint for traces |
-| `NEXORA_CRAWL_ALLOWED_ORIGIN` | empty | CORS origins, comma separated |
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `PORT` | `8080` | HTTP port |
+| `API_KEY` | empty | Bearer token required by all scrape/search endpoints |
+| `OBSCURA_BIN` | `deps/obscura` | Path to the Obscura binary |
+| `TIMEOUT_MS` | `60000` | Default timeout for Obscura calls |
+| `SEARCH_ENGINES` | `duckduckgo,brave,startpage` | Comma-separated native engines |
+| `SEARCH_TIMEOUT_MS` | `30000` | Timeout per engine query |
+| `SEARCH_DEFAULT_LIMIT` | `10` | Default number of search results |
+| `PROXY` | empty | Optional proxy for search and scrape |
+| `OTEL_ENDPOINT` | empty | OTLP endpoint for traces |
+| `ALLOWED_ORIGIN` | empty | CORS origins, comma separated |
 
 ---
 
 ## Authentication
 
-If `NEXORA_CRAWL_API_KEY` is set, every scrape and search request must include the token in the `Authorization` header:
+If `API_KEY` is set, every scrape and search request must include the token in the `Authorization` header:
 
 ```bash
 Authorization: Bearer your-secret-key

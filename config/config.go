@@ -25,17 +25,17 @@ type Config struct {
 
 func Load() *Config {
 	cfg := &Config{
-		Port:              getEnv("NEXORA_CRAWL_PORT", "8080"),
-		ObscuraBinaryPath: getEnv("NEXORA_CRAWL_OBSCURA_BIN", ""),
-		OTelEndpoint:      getEnv("NEXORA_CRAWL_OTEL_ENDPOINT", ""),
-		APIKey:            getEnv("NEXORA_CRAWL_API_KEY", ""),
-		Timeout:           parseDurationMs(getEnv("NEXORA_CRAWL_TIMEOUT_MS", "60000")),
-		AllowedOrigins:    splitOrigins(getEnv("NEXORA_CRAWL_ALLOWED_ORIGIN", "")),
+		Port:              getEnv("PORT", "8080"),
+		ObscuraBinaryPath: getEnv("OBSCURA_BIN", ""),
+		OTelEndpoint:      getEnv("OTEL_ENDPOINT", ""),
+		APIKey:            getEnv("API_KEY", ""),
+		Timeout:           parseDurationMs(getEnv("TIMEOUT_MS", "60000")),
+		AllowedOrigins:    splitOrigins(getEnv("ALLOWED_ORIGIN", "")),
 
-		SearchEngines:      splitTrim(getEnv("NEXORA_CRAWL_SEARCH_ENGINES", "duckduckgo,brave,startpage")),
-		SearchTimeout:      parseDurationMs(getEnv("NEXORA_CRAWL_SEARCH_TIMEOUT_MS", "30000")),
-		SearchDefaultLimit: parseInt(getEnv("NEXORA_CRAWL_SEARCH_DEFAULT_LIMIT", "10")),
-		Proxy:              getEnv("NEXORA_CRAWL_PROXY", ""),
+		SearchEngines:      splitTrim(getEnv("SEARCH_ENGINES", "duckduckgo,brave,startpage")),
+		SearchTimeout:      parseDurationMs(getEnv("SEARCH_TIMEOUT_MS", "30000")),
+		SearchDefaultLimit: parseInt(getEnv("SEARCH_DEFAULT_LIMIT", "10")),
+		Proxy:              getEnv("PROXY", ""),
 	}
 
 	cfg.ObscuraBinaryPath = resolveObscuraBinary(cfg.ObscuraBinaryPath)

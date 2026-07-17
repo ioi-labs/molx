@@ -29,7 +29,7 @@ RUN chmod +x /app/deps/obscura /app/deps/obscura-worker /app/nexora-crawl
 # Switch to non-root user
 USER appuser
 
-# Expose the default port (can be overridden via NEXORA_CRAWL_PORT env var)
+# Expose the default port (can be overridden via PORT env var)
 EXPOSE 8080
 
 # Run the server
