@@ -5,9 +5,4 @@ Both files below are required. The Docker build will fail if either file is miss
 - `obscura`
 - `obscura-worker`
 
-The CI workflow expects these exact paths:
-
-- `deps/obscura/linux/amd64/obscura`
-- `deps/obscura/linux/amd64/obscura-worker`
-- `deps/obscura/linux/arm64/obscura`
-- `deps/obscura/linux/arm64/obscura-worker`
+For local builds, place the Linux arm64 binaries in this directory. The CI workflow downloads them automatically from the upstream release.

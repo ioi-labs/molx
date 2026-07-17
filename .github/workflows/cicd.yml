@@ -10,6 +10,8 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  OBSCURA_VERSION: v0.1.10
+  OBSCURA_RELEASE_URL: https://github.com/h4ckf0r0day/obscura/releases/download/v0.1.10
 
 permissions:
   contents: write
@@ -43,15 +45,19 @@ jobs:
           - goos: linux
             goarch: amd64
             archive: nexora-crawl-linux-amd64
+            obscura_asset: obscura-x86_64-linux.tar.gz
           - goos: linux
             goarch: arm64
             archive: nexora-crawl-linux-arm64
+            obscura_asset: obscura-aarch64-linux.tar.gz
           - goos: darwin
             goarch: amd64
             archive: nexora-crawl-macos-x86_64
+            obscura_asset: obscura-x86_64-macos.tar.gz
           - goos: darwin
             goarch: arm64
             archive: nexora-crawl-macos-arm64
+            obscura_asset: obscura-aarch64-macos.tar.gz
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -60,6 +66,14 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.23'
+
+      - name: Download Obscura binaries
+        run: |
+          mkdir -p "deps/obscura/${{ matrix.goos }}/${{ matrix.goarch }}"
+          curl -fsSL -o /tmp/obscura.tar.gz "${OBSCURA_RELEASE_URL}/${{ matrix.obscura_asset }}"
+          tar -xzf /tmp/obscura.tar.gz -C "deps/obscura/${{ matrix.goos }}/${{ matrix.goarch }}"
+          chmod +x "deps/obscura/${{ matrix.goos }}/${{ matrix.goarch }}/obscura" \
+            "deps/obscura/${{ matrix.goos }}/${{ matrix.goarch }}/obscura-worker"
 
       - name: Build binary
         env:
@@ -91,6 +105,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Download Obscura Linux binaries
+        run: |
+          mkdir -p deps/obscura/linux/amd64 deps/obscura/linux/arm64
+          curl -fsSL -o /tmp/obscura-amd64.tar.gz "${OBSCURA_RELEASE_URL}/obscura-x86_64-linux.tar.gz"
+          curl -fsSL -o /tmp/obscura-arm64.tar.gz "${OBSCURA_RELEASE_URL}/obscura-aarch64-linux.tar.gz"
+          tar -xzf /tmp/obscura-amd64.tar.gz -C deps/obscura/linux/amd64
+          tar -xzf /tmp/obscura-arm64.tar.gz -C deps/obscura/linux/arm64
+          chmod +x deps/obscura/linux/amd64/obscura deps/obscura/linux/amd64/obscura-worker
+          chmod +x deps/obscura/linux/arm64/obscura deps/obscura/linux/arm64/obscura-worker
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -137,6 +161,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Download Obscura Linux binaries
+        run: |
+          mkdir -p deps/obscura/linux/amd64 deps/obscura/linux/arm64
+          curl -fsSL -o /tmp/obscura-amd64.tar.gz "${OBSCURA_RELEASE_URL}/obscura-x86_64-linux.tar.gz"
+          curl -fsSL -o /tmp/obscura-arm64.tar.gz "${OBSCURA_RELEASE_URL}/obscura-aarch64-linux.tar.gz"
+          tar -xzf /tmp/obscura-amd64.tar.gz -C deps/obscura/linux/amd64
+          tar -xzf /tmp/obscura-arm64.tar.gz -C deps/obscura/linux/arm64
+          chmod +x deps/obscura/linux/amd64/obscura deps/obscura/linux/amd64/obscura-worker
+          chmod +x deps/obscura/linux/arm64/obscura deps/obscura/linux/arm64/obscura-worker
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
