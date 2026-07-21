@@ -9,6 +9,7 @@ type BatchScrapeRequest struct {
 	MaxConcurrency    int              `json:"maxConcurrency,omitempty"`
 	Formats           []string         `json:"formats,omitempty"`
 	OnlyMainContent   bool             `json:"onlyMainContent,omitempty"`
+	OnlyCleanContent  bool             `json:"onlyCleanContent,omitempty"`
 	IncludeTags       []string         `json:"includeTags,omitempty"`
 	ExcludeTags       []string         `json:"excludeTags,omitempty"`
 	WaitFor           int              `json:"waitFor,omitempty"` // milliseconds

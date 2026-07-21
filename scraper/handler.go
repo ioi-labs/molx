@@ -43,16 +43,17 @@ func (h *V2ScrapeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	start := time.Now()
 	data, err := h.Scraper.Run(ctx, targetURL, Options{
-		Formats:         req.Formats,
-		OnlyMainContent: req.OnlyMainContent,
-		IncludeTags:     req.IncludeTags,
-		ExcludeTags:     req.ExcludeTags,
-		WaitFor:         req.WaitFor,
-		Timeout:         req.Timeout,
-		Mobile:          req.Mobile,
-		Proxy:           firstNonEmpty(req.Proxy, h.Config.Proxy),
-		BlockAds:        req.BlockAds,
-		Actions:         req.Actions,
+		Formats:          req.Formats,
+		OnlyMainContent:  req.OnlyMainContent,
+		OnlyCleanContent: req.OnlyCleanContent,
+		IncludeTags:      req.IncludeTags,
+		ExcludeTags:      req.ExcludeTags,
+		WaitFor:          req.WaitFor,
+		Timeout:          req.Timeout,
+		Mobile:           req.Mobile,
+		Proxy:            firstNonEmpty(req.Proxy, h.Config.Proxy),
+		BlockAds:         req.BlockAds,
+		Actions:          req.Actions,
 	})
 	elapsed := time.Since(start).Milliseconds()
 

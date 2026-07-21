@@ -135,14 +135,15 @@ func (h *V2SearchHandler) scrapeOne(ctx context.Context, item models.V2SearchRes
 	start := time.Now()
 	data, err := h.Scraper.Run(ctx, item.URL, scraper.Options{
 		Formats:         opts.Formats,
-		OnlyMainContent: opts.OnlyMainContent,
-		IncludeTags:     opts.IncludeTags,
-		ExcludeTags:     opts.ExcludeTags,
-		WaitFor:         opts.WaitFor,
-		Timeout:         opts.Timeout,
-		Mobile:          opts.Mobile,
-		Proxy:           firstNonEmpty(opts.Proxy, h.Config.Proxy),
-		BlockAds:        opts.BlockAds,
+		OnlyMainContent:  opts.OnlyMainContent,
+		OnlyCleanContent: opts.OnlyCleanContent,
+		IncludeTags:      opts.IncludeTags,
+		ExcludeTags:      opts.ExcludeTags,
+		WaitFor:          opts.WaitFor,
+		Timeout:          opts.Timeout,
+		Mobile:           opts.Mobile,
+		Proxy:            firstNonEmpty(opts.Proxy, h.Config.Proxy),
+		BlockAds:         opts.BlockAds,
 	})
 	if err != nil {
 		slog.Warn("search scrape failed", "url", item.URL, "error", err, "elapsed_ms", time.Since(start).Milliseconds())

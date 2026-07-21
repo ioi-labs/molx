@@ -2,6 +2,8 @@ package search
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"log/slog"
 	"math/rand"
 	"strings"
@@ -16,12 +18,6 @@ func Aggregate(ctx context.Context, engines []Engine, opts Options) ([]Result, e
 		return nil, ErrNoResults
 	}
 
-	type engineResult struct {
-		idx int
-		res []Result
-		err error
-	}
-
 	ctx, cancel := context.WithTimeout(ctx, opts.Timeout)
 	defer cancel()
 
@@ -32,7 +28,7 @@ func Aggregate(ctx context.Context, engines []Engine, opts Options) ([]Result, e
 		wg.Add(1)
 		go func(idx int, e Engine) {
 			defer wg.Done()
-			res, err := e.Search(ctx, opts)
+			res, err := searchWithRetry(ctx, e, opts)
 			results[idx] = engineResult{idx: idx, res: res, err: err}
 			if err != nil {
 				slog.Warn("search engine failed", "engine", e.Name(), "error", err)
@@ -46,14 +42,17 @@ func Aggregate(ctx context.Context, engines []Engine, opts Options) ([]Result, e
 	// when the current engine is exhausted or failed. This mirrors how a user
 	// would retry a query across providers.
 	order := deterministicOrder(engines, opts.Query)
+	slog.Info("search engine order", "order", engineOrderNames(engines, order), "query", opts.Query)
 
 	var merged []Result
 	seen := make(map[string]bool)
+	successEngines := make([]string, 0, len(engines))
 	for _, idx := range order {
 		r := results[idx]
 		if r.err != nil {
 			continue
 		}
+		successEngines = append(successEngines, engines[idx].Name())
 		for _, item := range r.res {
 			key := normalizeURLKey(item.URL)
 			if seen[key] {
@@ -63,15 +62,11 @@ func Aggregate(ctx context.Context, engines []Engine, opts Options) ([]Result, e
 			merged = append(merged, item)
 		}
 	}
+	slog.Info("search results merged", "engines_used", successEngines, "total", len(merged))
 
 	if len(merged) == 0 {
-		// If all engines failed, surface the first error in original order.
-		for _, r := range results {
-			if r.err != nil {
-				return nil, r.err
-			}
-		}
-		return nil, ErrNoResults
+		// If all engines failed, surface a summary of every engine error.
+		return nil, summarizeErrors(results, engines)
 	}
 
 	limit := ClampLimit(opts.Limit)
@@ -105,8 +100,76 @@ func deterministicOrder(engines []Engine, query string) []int {
 	return indices
 }
 
+const retryBaseDelay = 500 * time.Millisecond
+
+// searchWithRetry attempts a search up to two times with a small jittered delay.
+// ponytail: one retry is enough; exponential backoff adds latency without helping blocks.
+func searchWithRetry(ctx context.Context, e Engine, opts Options) ([]Result, error) {
+	res, err := e.Search(ctx, opts)
+	if err == nil {
+		return res, nil
+	}
+	// Only retry on network/blocked errors, not on definite failures like invalid options.
+	if errors.Is(err, ErrInvalid) || errors.Is(err, ErrCaptcha) {
+		return nil, err
+	}
+
+	jitter := time.Duration(rand.Intn(500)) * time.Millisecond
+	timer := time.NewTimer(retryBaseDelay + jitter)
+	select {
+	case <-timer.C:
+	case <-ctx.Done():
+		timer.Stop()
+		return nil, ctx.Err()
+	}
+
+	res, err2 := e.Search(ctx, opts)
+	if err2 != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
 // AggregateOptions is a small alias exported for callers that wire engines.
 type AggregateOptions = Options
+
+type engineResult struct {
+	idx int
+	res []Result
+	err error
+}
+
+func engineOrderNames(engines []Engine, order []int) []string {
+	names := make([]string, 0, len(order))
+	for _, idx := range order {
+		names = append(names, engines[idx].Name())
+	}
+	return names
+}
+
+func summarizeErrors(results []engineResult, engines []Engine) error {
+	var hasResult bool
+	for _, r := range results {
+		if r.err == nil {
+			hasResult = true
+			break
+		}
+	}
+	if hasResult {
+		return ErrNoResults
+	}
+
+	parts := make([]string, 0, len(results))
+	for _, r := range results {
+		if r.err != nil {
+			parts = append(parts, fmt.Sprintf("%s: %v", engines[r.idx].Name(), r.err))
+		}
+	}
+	if len(parts) == 0 {
+		return ErrNoResults
+	}
+	return fmt.Errorf("all search engines failed: %s", strings.Join(parts, "; "))
+}
 
 func normalizeURLKey(raw string) string {
 	u := strings.ToLower(raw)

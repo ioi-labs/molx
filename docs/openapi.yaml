@@ -255,6 +255,55 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
+  /enrich:
+    post:
+      summary: Start an enrichment job
+      description: |
+        Accepts a prompt and JSON schema. If `urls` is provided, those pages are
+        scraped; otherwise the prompt is used to search the web. The content is
+        sent to the configured LLM, which returns JSON matching the schema.
+        Poll `GET /enrich/{id}` for status and the structured result.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnrichRequest'
+      responses:
+        '200':
+          description: Enrichment job created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnrichCreateResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /enrich/{id}:
+    get:
+      summary: Get enrichment job status
+      description: |
+        Returns the status and result of an enrichment job. Jobs are kept in
+        memory and expire after 24 hours.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Enrichment job status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnrichStatusResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
 components:
   securitySchemes:
     bearerAuth:
@@ -391,13 +440,17 @@ components:
           enum: [ok, "missing binary"]
     V2ScrapeRequest:
       type: object
-      required:
-        - url
       properties:
         url:
           type: string
           format: uri
-          description: Absolute http(s) URL to scrape.
+          description: Absolute http(s) URL to scrape. Either `url` or `urls` must be provided; `url` is preferred.
+        urls:
+          type: array
+          items:
+            type: string
+            format: uri
+          description: Array of URLs to scrape. Only the first URL is processed; provided for Firecrawl compatibility.
         formats:
           type: array
           items:
@@ -408,6 +461,10 @@ components:
           type: boolean
           default: false
           description: Restrict extraction to main/article content.
+        onlyCleanContent:
+          type: boolean
+          default: false
+          description: Clean extracted content via an LLM. Requires LLM_BASE_URL, LLM_API_KEY, and LLM_MODEL environment variables.
         includeTags:
           type: array
           items:
@@ -528,6 +585,10 @@ components:
         onlyMainContent:
           type: boolean
           default: false
+        onlyCleanContent:
+          type: boolean
+          default: false
+          description: Clean extracted content via an LLM. Requires LLM_BASE_URL, LLM_API_KEY, and LLM_MODEL environment variables.
         includeTags:
           type: array
           items:
@@ -633,6 +694,83 @@ components:
                   type: string
               metadata:
                 $ref: '#/components/schemas/V2ScrapeMetadata'
+    EnrichRequest:
+      type: object
+      required:
+        - prompt
+        - schema
+      properties:
+        prompt:
+          type: string
+          description: Instruction describing what structured data to extract.
+        schema:
+          type: object
+          description: JSON Schema describing the desired output shape.
+        urls:
+          type: array
+          items:
+            type: string
+            format: uri
+          description: Optional URLs to scrape. If omitted, the prompt is used to search the web.
+    EnrichCreateResponse:
+      type: object
+      required:
+        - success
+        - id
+        - url
+        - status
+      properties:
+        success:
+          type: boolean
+        id:
+          type: string
+          format: uuid
+        url:
+          type: string
+          format: uri
+        status:
+          type: string
+          enum: [pending, running, completed, failed]
+    EnrichStatusResponse:
+      type: object
+      required:
+        - id
+        - status
+        - prompt
+        - createdAt
+        - expiresAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, running, completed, failed]
+        prompt:
+          type: string
+        schema:
+          type: object
+          description: JSON Schema from the original request.
+        urls:
+          type: array
+          items:
+            type: string
+            format: uri
+        result:
+          type: object
+          description: Structured JSON returned by the LLM.
+        error:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+        expiresAt:
+          type: string
+          format: date-time
     ErrorResponse:
       type: object
       required:
@@ -681,6 +819,10 @@ components:
             onlyMainContent:
               type: boolean
               default: false
+            onlyCleanContent:
+              type: boolean
+              default: false
+              description: Clean scraped result content via an LLM. Requires LLM_BASE_URL, LLM_API_KEY, and LLM_MODEL environment variables.
             includeTags:
               type: array
               items:

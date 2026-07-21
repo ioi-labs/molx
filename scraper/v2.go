@@ -2,9 +2,11 @@ package scraper
 
 import (
 	"context"
+	"errors"
 	"strconv"
 	"strings"
 
+	"nexora-crawl/cleaner"
 	"nexora-crawl/config"
 	"nexora-crawl/extractor"
 	"nexora-crawl/models"
@@ -13,27 +15,37 @@ import (
 
 // Options carries the common scrape options used by both sync and async paths.
 type Options struct {
-	Formats         []string
-	OnlyMainContent bool
-	IncludeTags     []string
-	ExcludeTags     []string
-	WaitFor         int
-	Timeout         int
-	Mobile          bool
-	Proxy           string
-	BlockAds        bool
-	Actions         []models.V2ScrapeAction
+	Formats          []string
+	OnlyMainContent  bool
+	OnlyCleanContent bool
+	IncludeTags      []string
+	ExcludeTags      []string
+	WaitFor          int
+	Timeout          int
+	Mobile           bool
+	Proxy            string
+	BlockAds         bool
+	Actions          []models.V2ScrapeAction
 }
 
 // V2Scraper performs a single-URL scrape using the Obscura CLI.
 type V2Scraper struct {
-	Config *config.Config
-	Client *obscura.Client
+	Config  *config.Config
+	Client  *obscura.Client
+	Cleaner *cleaner.Client
 }
 
 // NewV2 returns a scraper bound to the given config and Obscura client.
 func NewV2(cfg *config.Config, client *obscura.Client) *V2Scraper {
-	return &V2Scraper{Config: cfg, Client: client}
+	return &V2Scraper{
+		Config: cfg,
+		Client: client,
+		Cleaner: cleaner.NewClient(cleaner.Config{
+			BaseURL: cfg.LLMBaseURL,
+			APIKey:  cfg.LLMAPIKey,
+			Model:   cfg.LLMModel,
+		}),
+	}
 }
 
 // Run fetches and extracts content for one URL.
@@ -77,6 +89,17 @@ func (s *V2Scraper) Run(ctx context.Context, url string, opts Options) (*models.
 		md, _ = extractor.ApplyFilters(md, opts.ExcludeTags)
 	}
 	md = extractor.CompressMarkdownWhitespace(md)
+
+	if opts.OnlyCleanContent {
+		if s.Cleaner == nil {
+			return nil, errors.New("LLM not provided")
+		}
+		cleaned, cleanErr := s.Cleaner.CleanMarkdown(ctx, md)
+		if cleanErr != nil {
+			return nil, cleanErr
+		}
+		md = cleaned
+	}
 
 	html := ""
 	if hasFormat(formats, "html") || hasFormat(formats, "text") || hasFormat(formats, "links") {

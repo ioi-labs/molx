@@ -21,6 +21,10 @@ type Config struct {
 	SearchTimeout      time.Duration
 	SearchDefaultLimit int
 	Proxy              string
+
+	LLMBaseURL string
+	LLMAPIKey  string
+	LLMModel   string
 }
 
 func Load() *Config {
@@ -36,6 +40,10 @@ func Load() *Config {
 		SearchTimeout:      parseDurationMs(getEnv("SEARCH_TIMEOUT_MS", "30000")),
 		SearchDefaultLimit: parseInt(getEnv("SEARCH_DEFAULT_LIMIT", "10")),
 		Proxy:              getEnv("PROXY", ""),
+
+		LLMBaseURL: strings.TrimRight(getEnv("LLM_BASE_URL", ""), "/"),
+		LLMAPIKey:  getEnv("LLM_API_KEY", ""),
+		LLMModel:   getEnv("LLM_MODEL", ""),
 	}
 
 	cfg.ObscuraBinaryPath = resolveObscuraBinary(cfg.ObscuraBinaryPath)

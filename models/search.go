@@ -12,9 +12,10 @@ type V2SearchRequest struct {
 
 // V2SearchScrapeOptions controls whether and how search results are scraped.
 type V2SearchScrapeOptions struct {
-	Formats         []string `json:"formats,omitempty"`
-	OnlyMainContent bool     `json:"onlyMainContent,omitempty"`
-	IncludeTags     []string `json:"includeTags,omitempty"`
+	Formats          []string `json:"formats,omitempty"`
+	OnlyMainContent  bool     `json:"onlyMainContent,omitempty"`
+	OnlyCleanContent bool     `json:"onlyCleanContent,omitempty"`
+	IncludeTags      []string `json:"includeTags,omitempty"`
 	ExcludeTags     []string `json:"excludeTags,omitempty"`
 	WaitFor         int      `json:"waitFor,omitempty"`
 	Timeout         int      `json:"timeout,omitempty"`

@@ -183,15 +183,16 @@ func (r *Runner) runOne(ctx context.Context, job *JobState, url string, req mode
 	start := time.Now()
 	data, err := r.scraper.Run(ctx, url, scraper.Options{
 		Formats:         req.Formats,
-		OnlyMainContent: req.OnlyMainContent,
-		IncludeTags:     req.IncludeTags,
-		ExcludeTags:     req.ExcludeTags,
-		WaitFor:         req.WaitFor,
-		Timeout:         req.Timeout,
-		Mobile:          req.Mobile,
-		Proxy:           firstNonEmpty(req.Proxy, r.scraper.Config.Proxy),
-		BlockAds:        req.BlockAds,
-		Actions:         req.Actions,
+		OnlyMainContent:  req.OnlyMainContent,
+		OnlyCleanContent: req.OnlyCleanContent,
+		IncludeTags:      req.IncludeTags,
+		ExcludeTags:      req.ExcludeTags,
+		WaitFor:          req.WaitFor,
+		Timeout:          req.Timeout,
+		Mobile:           req.Mobile,
+		Proxy:            firstNonEmpty(req.Proxy, r.scraper.Config.Proxy),
+		BlockAds:         req.BlockAds,
+		Actions:          req.Actions,
 	})
 
 	item := models.BatchScrapeResultItem{

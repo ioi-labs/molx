@@ -16,6 +16,7 @@ import (
 
 	"nexora-crawl/batch"
 	"nexora-crawl/config"
+	"nexora-crawl/enrich"
 	"nexora-crawl/handlers"
 	"nexora-crawl/internal/searchfactory"
 	localMiddleware "nexora-crawl/middleware"
@@ -82,6 +83,11 @@ func main() {
 	batchCreate := &batch.CreateHandler{Runner: batchRunner}
 	batchStatus := &batch.StatusHandler{Store: batchStore}
 
+	enrichStore := enrich.NewStore()
+	enrichRunner := enrich.NewRunner(enrichStore, cfg, client, engines)
+	enrichCreate := &enrich.CreateHandler{Runner: enrichRunner}
+	enrichStatus := &enrich.StatusHandler{Store: enrichStore}
+
 	v2Search := &handlers.V2SearchHandler{Config: cfg, Scraper: v2Scraper, Engines: engines}
 	legacySearch := &handlers.LegacySearchHandler{Config: cfg, Engines: engines}
 
@@ -92,6 +98,8 @@ func main() {
 	r.With(api).Get("/v2/batch/scrape/{id}", batchStatus.ServeHTTP)
 	r.With(api).Post("/v2/search", v2Search.ServeHTTP)
 	r.With(api).Handle("/search", legacySearch)
+	r.With(api).Post("/enrich", enrichCreate.ServeHTTP)
+	r.With(api).Get("/enrich/{id}", enrichStatus.ServeHTTP)
 	r.Get("/health", health.ServeHTTP)
 	r.Get("/reference", handlers.Reference)
 	r.Get("/scalar-standalone.js", handlers.ScalarJS)

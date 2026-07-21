@@ -67,6 +67,9 @@ Set these environment variables to configure the server.
 | `PROXY` | empty | Optional proxy for search and scrape |
 | `OTEL_ENDPOINT` | empty | OTLP endpoint for traces |
 | `ALLOWED_ORIGIN` | empty | CORS origins, comma separated |
+| `LLM_BASE_URL` | empty | OpenAI-compatible chat completions base URL (e.g. `https://api.openai.com`) |
+| `LLM_API_KEY` | empty | API key for the LLM provider |
+| `LLM_MODEL` | empty | Model name, e.g. `gpt-4o-mini`. Required for `onlyCleanContent`. |
 
 ---
 
@@ -105,7 +108,8 @@ curl -X POST http://localhost:8080/v2/scrape \
   -d '{
     "url": "https://example.com",
     "formats": ["markdown"],
-    "onlyMainContent": true
+    "onlyMainContent": true,
+    "onlyCleanContent": true
   }'
 ```
 
@@ -135,7 +139,8 @@ curl -X POST http://localhost:8080/search \
     "limit": 5,
     "scrapeOptions": {
       "formats": ["markdown"],
-      "onlyMainContent": true
+      "onlyMainContent": true,
+      "onlyCleanContent": true
     }
   }'
 ```
