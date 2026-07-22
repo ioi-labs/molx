@@ -247,7 +247,7 @@ type Runner struct {
 }
 
 // NewRunner wires the runner with dependencies needed to search, scrape, and enrich.
-func NewRunner(store *Store, cfg *config.Config, client *obscura.Client, engines []search.Engine) *Runner {
+func NewRunner(store *Store, cfg *config.Config, client obscura.Fetcher, engines []search.Engine) *Runner {
 	return &Runner{
 		store:   store,
 		scraper: scraper.NewV2(cfg, client),

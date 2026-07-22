@@ -3,6 +3,17 @@ info:
   title: Nexora Crawl API
   description: REST API wrapper for the Obscura headless browser CLI.
   version: 1.0.0
+tags:
+  - name: System
+    description: Service health and metadata.
+  - name: Fetch
+    description: Single-page raw fetch through Obscura.
+  - name: Scrape
+    description: Single and batch content extraction in Firecrawl-compatible shapes.
+  - name: Search
+    description: Web search using native search engines.
+  - name: Enrich
+    description: Structured data extraction via search/scrape and LLM.
 servers:
   - url: http://localhost:8080
     description: Local development server
@@ -11,6 +22,7 @@ paths:
     get:
       summary: Health check
       description: Returns the service status and whether the Obscura binary is available.
+      tags: [System]
       security: []
       responses:
         '200':
@@ -23,6 +35,7 @@ paths:
     post:
       summary: Fetch a single URL
       description: Runs `obscura fetch` for one URL and returns the rendered content or evaluated result.
+      tags: [Fetch]
       requestBody:
         required: true
         content:
@@ -44,8 +57,12 @@ paths:
           $ref: '#/components/responses/MethodNotAllowed'
   /scrape:
     post:
-      summary: Scrape multiple URLs
-      description: Runs `obscura scrape` over many URLs in parallel.
+      summary: Scrape a single URL
+      description: |
+        Renders one URL through Obscura and returns extracted content. This is
+        the legacy path; `/v2/scrape` uses the same handler and returns the
+        Firecrawl v2 response shape.
+      tags: [Scrape]
       requestBody:
         required: true
         content:
@@ -72,6 +89,7 @@ paths:
         Renders one URL through Obscura and returns extracted content in the
         Firecrawl v2 response shape. Supported formats are markdown, html, text,
         and links. Unsupported fields are accepted but ignored.
+      tags: [Scrape]
       requestBody:
         required: true
         content:
@@ -98,6 +116,7 @@ paths:
         Accepts an array of URLs and starts an asynchronous batch scrape job.
         All valid URLs are processed in parallel with bounded concurrency.
         Poll `GET /v2/batch/scrape/{id}` for status and results.
+      tags: [Scrape]
       requestBody:
         required: true
         content:
@@ -122,6 +141,7 @@ paths:
         Proxies a query to the configured SearXNG instance using the native
         SearXNG API. Supports query parameters such as `q`, `format`,
         `language`, `time_range`, `safesearch`, and `pageno`.
+      tags: [Search]
       parameters:
         - name: q
           in: query
@@ -173,6 +193,7 @@ paths:
       description: |
         Same as GET /search but accepts form-encoded parameters in the request
         body, matching the SearXNG API.
+      tags: [Search]
       requestBody:
         required: true
         content:
@@ -210,6 +231,7 @@ paths:
         Searches the web and returns result titles, URLs, and snippets.
         Include `scrapeOptions` with `formats: ["markdown"]` to scrape each
         result page.
+      tags: [Search]
       requestBody:
         required: true
         content:
@@ -237,6 +259,7 @@ paths:
       description: |
         Returns the current status and accumulated results for a batch scrape
         job. Jobs are kept in memory and expire after 24 hours.
+      tags: [Scrape]
       parameters:
         - name: id
           in: path
@@ -263,6 +286,7 @@ paths:
         scraped; otherwise the prompt is used to search the web. The content is
         sent to the configured LLM, which returns JSON matching the schema.
         Poll `GET /enrich/{id}` for status and the structured result.
+      tags: [Enrich]
       requestBody:
         required: true
         content:
@@ -286,6 +310,7 @@ paths:
       description: |
         Returns the status and result of an enrichment job. Jobs are kept in
         memory and expire after 24 hours.
+      tags: [Enrich]
       parameters:
         - name: id
           in: path

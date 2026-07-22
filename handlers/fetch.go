@@ -15,7 +15,7 @@ import (
 
 type FetchHandler struct {
 	Config *config.Config
-	Client *obscura.Client
+	Client obscura.Fetcher
 }
 
 func (h *FetchHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

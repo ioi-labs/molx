@@ -13,6 +13,12 @@ import (
 	"nexora-crawl/models"
 )
 
+// Fetcher is the minimal surface callers need from an Obscura client.
+// ponytail: interface keeps handlers unit-testable without a real binary.
+type Fetcher interface {
+	Fetch(ctx context.Context, req models.FetchRequest) ([]byte, error)
+}
+
 // Client wraps execution of the Obscura CLI binary.
 type Client struct {
 	binaryPath string

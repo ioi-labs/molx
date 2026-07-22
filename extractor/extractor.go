@@ -239,6 +239,37 @@ func ApplyFilters(input string, excludeTags []string) (string, error) {
 	return out, nil
 }
 
+// ApplyIncludeFilters keeps only elements matching includeTags selectors.
+// If no element matches, it returns an empty string so callers know the selector
+// did not select anything.
+// ponytail: works on HTML; markdown is wrapped as a fragment before selection.
+func ApplyIncludeFilters(input string, includeTags []string) (string, error) {
+	if len(includeTags) == 0 {
+		return input, nil
+	}
+	html := input
+	if !strings.Contains(html, "</html>") && !strings.Contains(html, "</body>") {
+		html = "<body>" + html + "</body>"
+	}
+	doc, err := goquery.NewDocumentFromReader(strings.NewReader(html))
+	if err != nil {
+		return input, err
+	}
+	selector := strings.Join(includeTags, ", ")
+	selection := doc.Find(selector)
+	if selection.Length() == 0 {
+		return "", nil
+	}
+	var b strings.Builder
+	selection.Each(func(_ int, s *goquery.Selection) {
+		if h, err := goquery.OuterHtml(s); err == nil {
+			b.WriteString(h)
+			b.WriteString("\n")
+		}
+	})
+	return b.String(), nil
+}
+
 // ExtractMetadata pulls page-level metadata from the rendered HTML.
 func ExtractMetadata(html, sourceURL string, statusCode int, contentType string) models.V2ScrapeMetadata {
 	m := models.V2ScrapeMetadata{

@@ -17,7 +17,7 @@ import (
 // single-URL scraper.
 type V2ScrapeHandler struct {
 	Config  *config.Config
-	Client  *obscura.Client
+	Client  obscura.Fetcher
 	Scraper *V2Scraper
 }
 

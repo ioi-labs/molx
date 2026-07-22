@@ -219,6 +219,13 @@ func mapSearXNG(results []search.Result) []models.SearXNGResult {
 	return out
 }
 
+func firstNonEmpty(a, b string) string {
+	if a != "" {
+		return a
+	}
+	return b
+}
+
 func parseSafeSearch(s string) int {
 	n, err := strconv.Atoi(s)
 	if err != nil || n < 0 || n > 2 {

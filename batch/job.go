@@ -97,7 +97,7 @@ type Runner struct {
 	scraper *scraper.V2Scraper
 }
 
-func NewRunner(store *Store, cfg *config.Config, client *obscura.Client) *Runner {
+func NewRunner(store *Store, cfg *config.Config, client obscura.Fetcher) *Runner {
 	return &Runner{
 		store:   store,
 		scraper: scraper.NewV2(cfg, client),

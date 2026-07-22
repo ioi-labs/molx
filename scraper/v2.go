@@ -31,12 +31,12 @@ type Options struct {
 // V2Scraper performs a single-URL scrape using the Obscura CLI.
 type V2Scraper struct {
 	Config  *config.Config
-	Client  *obscura.Client
+	Client  obscura.Fetcher
 	Cleaner *cleaner.Client
 }
 
 // NewV2 returns a scraper bound to the given config and Obscura client.
-func NewV2(cfg *config.Config, client *obscura.Client) *V2Scraper {
+func NewV2(cfg *config.Config, client obscura.Fetcher) *V2Scraper {
 	return &V2Scraper{
 		Config: cfg,
 		Client: client,
@@ -88,6 +88,9 @@ func (s *V2Scraper) Run(ctx context.Context, url string, opts Options) (*models.
 	if len(opts.ExcludeTags) > 0 {
 		md, _ = extractor.ApplyFilters(md, opts.ExcludeTags)
 	}
+	if len(opts.IncludeTags) > 0 {
+		md, _ = extractor.ApplyIncludeFilters(md, opts.IncludeTags)
+	}
 	md = extractor.CompressMarkdownWhitespace(md)
 
 	if opts.OnlyCleanContent {
@@ -121,6 +124,9 @@ func (s *V2Scraper) Run(ctx context.Context, url string, opts Options) (*models.
 			if len(opts.ExcludeTags) > 0 {
 				html, _ = extractor.ApplyFilters(html, opts.ExcludeTags)
 			}
+			if len(opts.IncludeTags) > 0 {
+				html, _ = extractor.ApplyIncludeFilters(html, opts.IncludeTags)
+			}
 		}
 	}
 
@@ -138,6 +144,15 @@ func (s *V2Scraper) Run(ctx context.Context, url string, opts Options) (*models.
 		})
 		if htmlErr == nil {
 			htmlForMeta = string(htmlBytes)
+			if opts.OnlyMainContent {
+				htmlForMeta, _ = extractor.ApplyFilters(htmlForMeta, []string{"nav", "header", "footer", "aside", "[role='navigation']"})
+			}
+			if len(opts.ExcludeTags) > 0 {
+				htmlForMeta, _ = extractor.ApplyFilters(htmlForMeta, opts.ExcludeTags)
+			}
+			if len(opts.IncludeTags) > 0 {
+				htmlForMeta, _ = extractor.ApplyIncludeFilters(htmlForMeta, opts.IncludeTags)
+			}
 		}
 	}
 	metadata := extractor.ExtractMetadata(firstNonEmpty(htmlForMeta, md), url, 200, "text/html")

@@ -14,7 +14,36 @@ import (
 
 	"nexora-crawl/config"
 	"nexora-crawl/models"
+	"nexora-crawl/obscura"
+	"nexora-crawl/search"
 )
+
+// fakeFetcher is a stub Obscura fetcher for enrich tests.
+type fakeFetcher struct {
+	body []byte
+	err  error
+	reqs []models.FetchRequest
+}
+
+func (f *fakeFetcher) Fetch(ctx context.Context, req models.FetchRequest) ([]byte, error) {
+	f.reqs = append(f.reqs, req)
+	return f.body, f.err
+}
+
+var _ obscura.Fetcher = (*fakeFetcher)(nil)
+
+// fakeEngine is a stub search engine for enrich tests.
+type fakeEngine struct {
+	results []search.Result
+	lastOpts search.Options
+}
+
+func (e *fakeEngine) Name() string { return "fake" }
+func (e *fakeEngine) Search(ctx context.Context, opts search.Options) ([]search.Result, error) {
+	e.lastOpts = opts
+	return e.results, nil
+}
+
 
 func TestCreateHandler_BadRequest(t *testing.T) {
 	cfg := &config.Config{Timeout: 60 * time.Second}
@@ -111,6 +140,148 @@ func TestStatusHandler_NotFound(t *testing.T) {
 
 	if rr.Code != http.StatusNotFound {
 		t.Errorf("status = %d, want %d", rr.Code, http.StatusNotFound)
+	}
+}
+
+func TestCreateHandler_WithURLs(t *testing.T) {
+	cfg := &config.Config{Timeout: 60 * time.Second}
+	store := NewStore()
+	fetcher := &fakeFetcher{body: []byte("# Hello")}
+
+	llm := NewClient(Config{BaseURL: "http://test", APIKey: "k", Model: "m"})
+	llm.httpDo = func(req *http.Request) (*http.Response, error) {
+		body, _ := json.Marshal(chatResponse{Choices: []struct {
+			Message struct {
+				Content string `json:"content"`
+			} `json:"message"`
+		}{{Message: struct {
+			Content string `json:"content"`
+		}{Content: `{"answer":42}`}}}})
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Body:       io.NopCloser(bytes.NewReader(body)),
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+		}, nil
+	}
+
+	runner := NewRunner(store, cfg, fetcher, nil)
+	runner.llm = llm
+	create := &CreateHandler{Runner: runner}
+
+	body := bytes.NewReader([]byte(`{"prompt":"what is the answer","schema":{"type":"object"},"urls":["https://example.com"]}`))
+	req := httptest.NewRequest(http.MethodPost, "/enrich", body)
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+	create.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", rr.Code, http.StatusOK)
+	}
+
+	var createResp models.EnrichCreateResponse
+	if err := json.Unmarshal(rr.Body.Bytes(), &createResp); err != nil {
+		t.Fatalf("invalid response: %v", err)
+	}
+	if createResp.ID == "" {
+		t.Fatalf("expected job id")
+	}
+
+	deadline := time.Now().Add(2 * time.Second)
+	var statusResp models.EnrichStatusResponse
+	for {
+		statusReq := httptest.NewRequest(http.MethodGet, "/enrich/"+createResp.ID, nil)
+		rr = httptest.NewRecorder()
+		status := &StatusHandler{Store: store}
+		status.ServeHTTP(rr, withChiParam(statusReq, "id", createResp.ID))
+		if err := json.Unmarshal(rr.Body.Bytes(), &statusResp); err != nil {
+			t.Fatalf("invalid status response: %v", err)
+		}
+		if statusResp.Status == "completed" || statusResp.Status == "failed" {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("job did not finish in time")
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	if statusResp.Status != "completed" {
+		t.Errorf("status = %q, want completed", statusResp.Status)
+	}
+	if len(fetcher.reqs) == 0 {
+		t.Errorf("expected at least one scrape request")
+	}
+	if statusResp.Result == nil {
+		t.Errorf("expected result")
+	}
+}
+
+func TestCreateHandler_SearchPath(t *testing.T) {
+	cfg := &config.Config{Timeout: 60 * time.Second}
+	store := NewStore()
+	fetcher := &fakeFetcher{body: []byte("# Hello")}
+	eng := &fakeEngine{results: []search.Result{{Title: "Ex", URL: "https://example.com", Description: "x"}}}
+
+	llm := NewClient(Config{BaseURL: "http://test", APIKey: "k", Model: "m"})
+	llm.httpDo = func(req *http.Request) (*http.Response, error) {
+		body, _ := json.Marshal(chatResponse{Choices: []struct {
+			Message struct {
+				Content string `json:"content"`
+			} `json:"message"`
+		}{{Message: struct {
+			Content string `json:"content"`
+		}{Content: `{"answer":42}`}}}})
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Body:       io.NopCloser(bytes.NewReader(body)),
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+		}, nil
+	}
+
+	runner := NewRunner(store, cfg, fetcher, []search.Engine{eng})
+	runner.llm = llm
+	create := &CreateHandler{Runner: runner}
+
+	body := bytes.NewReader([]byte(`{"prompt":"answer","schema":{"type":"object"}}`))
+	req := httptest.NewRequest(http.MethodPost, "/enrich", body)
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+	create.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", rr.Code, http.StatusOK)
+	}
+
+	var createResp models.EnrichCreateResponse
+	if err := json.Unmarshal(rr.Body.Bytes(), &createResp); err != nil {
+		t.Fatalf("invalid response: %v", err)
+	}
+	if createResp.ID == "" {
+		t.Fatalf("expected job id")
+	}
+
+	deadline := time.Now().Add(2 * time.Second)
+	var statusResp models.EnrichStatusResponse
+	for {
+		statusReq := httptest.NewRequest(http.MethodGet, "/enrich/"+createResp.ID, nil)
+		rr = httptest.NewRecorder()
+		status := &StatusHandler{Store: store}
+		status.ServeHTTP(rr, withChiParam(statusReq, "id", createResp.ID))
+		if err := json.Unmarshal(rr.Body.Bytes(), &statusResp); err != nil {
+			t.Fatalf("invalid status response: %v", err)
+		}
+		if statusResp.Status == "completed" || statusResp.Status == "failed" {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("job did not finish in time")
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	if statusResp.Status != "completed" {
+		t.Errorf("status = %q, want completed", statusResp.Status)
+	}
+	if eng.lastOpts.Query != "answer" {
+		t.Errorf("search query = %q, want answer", eng.lastOpts.Query)
 	}
 }
 
