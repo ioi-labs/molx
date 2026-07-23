@@ -19,6 +19,7 @@ Interactive API documentation is available at `/reference` once the server is ru
 - **Scrape one page**: fetch rendered content as markdown, HTML, text, or links.
 - **Batch scrape**: process many URLs in the background and poll for results.
 - **Search the web**: query Brave, DuckDuckGo, and Startpage natively and optionally scrape each result page.
+- **Enrich with LLM**: search or scrape pages, then ask an OpenAI-compatible LLM to extract structured data from the content.
 - **API key protection**: lock the API with a bearer token.
 - **OpenTelemetry support**: send traces to any OTLP-compatible backend (optional).
 
@@ -177,6 +178,75 @@ curl -X POST http://localhost:8080/v2/batch/scrape \
 ```
 
 The response includes a job URL. Poll it to get the results.
+
+### Enrich with LLM
+
+Use this endpoint when you want structured data extracted from web content. Molx searches the web or scrapes the URLs you provide, then sends the combined content to an OpenAI-compatible LLM.
+
+Requirements:
+
+- `LLM_BASE_URL`
+- `LLM_API_KEY`
+- `LLM_MODEL`
+
+Start an enrichment job:
+
+```bash
+curl -X POST http://localhost:8080/enrich \
+  -H "Authorization: Bearer your-secret-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Extract the company name, CEO, and funding amount from each page",
+    "schema": {
+      "type": "object",
+      "properties": {
+        "company": { "type": "string" },
+        "ceo": { "type": "string" },
+        "funding": { "type": "string" }
+      }
+    },
+    "urls": ["https://example.com"]
+  }'
+```
+
+If `urls` is omitted, Molx searches the web using your prompt and scrapes the top results.
+
+Response:
+
+```json
+{
+  "success": true,
+  "id": "a1b2c3d4",
+  "url": "http://localhost:8080/enrich/a1b2c3d4",
+  "status": "pending"
+}
+```
+
+Poll the job URL to get the result:
+
+```bash
+curl http://localhost:8080/enrich/a1b2c3d4 \
+  -H "Authorization: Bearer your-secret-key"
+```
+
+Response:
+
+```json
+{
+  "id": "a1b2c3d4",
+  "status": "completed",
+  "prompt": "Extract the company name, CEO, and funding amount from each page",
+  "schema": { ... },
+  "urls": ["https://example.com"],
+  "result": {
+    "company": "Example Inc",
+    "ceo": "Jane Doe",
+    "funding": "$10M"
+  },
+  "createdAt": "2026-07-23T06:00:00Z",
+  "expiresAt": "2026-07-24T06:00:00Z"
+}
+```
 
 ---
 
