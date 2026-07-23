@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"nexora-crawl/models"
+	"molx/models"
 )
 
 // Fetcher is the minimal surface callers need from an Obscura client.

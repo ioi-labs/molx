@@ -11,10 +11,10 @@ import (
 	"testing"
 	"time"
 
-	"nexora-crawl/config"
-	"nexora-crawl/models"
-	"nexora-crawl/scraper"
-	"nexora-crawl/search"
+	"molx/config"
+	"molx/models"
+	"molx/scraper"
+	"molx/search"
 )
 
 // fakeEngine is a stub search engine for handler tests.

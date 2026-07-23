@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// Engine defines a search provider that can be used by Nexora Crawl.
+// Engine defines a search provider that can be used by Molx.
 type Engine interface {
 	Name() string
 	Search(ctx context.Context, opts Options) ([]Result, error)

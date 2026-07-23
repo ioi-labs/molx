@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"os"
 
-	"nexora-crawl/config"
-	"nexora-crawl/models"
+	"molx/config"
+	"molx/models"
 )
 
 type HealthHandler struct {

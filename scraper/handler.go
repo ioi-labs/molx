@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"time"
 
-	"nexora-crawl/config"
-	"nexora-crawl/middleware"
-	"nexora-crawl/models"
-	"nexora-crawl/obscura"
-	"nexora-crawl/validator"
+	"molx/config"
+	"molx/middleware"
+	"molx/models"
+	"molx/obscura"
+	"molx/validator"
 )
 
 // V2ScrapeHandler serves POST /scrape and POST /v2/scrape using the shared

@@ -15,7 +15,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
 	"go.opentelemetry.io/otel/trace"
 
-	"nexora-crawl/config"
+	"molx/config"
 )
 
 // Init sets up OpenTelemetry tracing when an OTLP endpoint is configured.
@@ -37,7 +37,7 @@ func Init(ctx context.Context, cfg *config.Config) (func(context.Context) error,
 		sdktrace.WithBatcher(exp),
 		sdktrace.WithResource(resource.NewWithAttributes(
 			semconv.SchemaURL,
-			semconv.ServiceName("nexora-crawl"),
+			semconv.ServiceName("molx"),
 			semconv.ServiceVersionKey.String("1.0.0"),
 		)),
 	)

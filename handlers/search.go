@@ -11,11 +11,11 @@ import (
 	"sync"
 	"time"
 
-	"nexora-crawl/config"
-	"nexora-crawl/middleware"
-	"nexora-crawl/models"
-	"nexora-crawl/scraper"
-	"nexora-crawl/search"
+	"molx/config"
+	"molx/middleware"
+	"molx/models"
+	"molx/scraper"
+	"molx/search"
 )
 
 // V2SearchHandler serves POST /v2/search with a Firecrawl-compatible shape.

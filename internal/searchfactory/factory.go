@@ -3,10 +3,10 @@ package searchfactory
 import (
 	"log/slog"
 
-	"nexora-crawl/search"
-	"nexora-crawl/search/brave"
-	"nexora-crawl/search/duckduckgo"
-	"nexora-crawl/search/startpage"
+	"molx/search"
+	"molx/search/brave"
+	"molx/search/duckduckgo"
+	"molx/search/startpage"
 )
 
 // BuildEngines creates the configured engine instances from their names.

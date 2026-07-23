@@ -9,11 +9,11 @@ import (
 
 	"github.com/google/uuid"
 
-	"nexora-crawl/config"
-	"nexora-crawl/models"
-	"nexora-crawl/obscura"
-	"nexora-crawl/scraper"
-	"nexora-crawl/validator"
+	"molx/config"
+	"molx/models"
+	"molx/obscura"
+	"molx/scraper"
+	"molx/validator"
 )
 
 // JobState tracks the lifecycle and results of a batch scrape.

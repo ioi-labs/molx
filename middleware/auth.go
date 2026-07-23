@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"nexora-crawl/config"
+	"molx/config"
 )
 
 // APIKey returns a middleware that validates the Authorization: Bearer header.

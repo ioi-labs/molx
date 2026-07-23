@@ -6,11 +6,11 @@ import (
 	"strconv"
 	"strings"
 
-	"nexora-crawl/cleaner"
-	"nexora-crawl/config"
-	"nexora-crawl/extractor"
-	"nexora-crawl/models"
-	"nexora-crawl/obscura"
+	"molx/cleaner"
+	"molx/config"
+	"molx/extractor"
+	"molx/models"
+	"molx/obscura"
 )
 
 // Options carries the common scrape options used by both sync and async paths.

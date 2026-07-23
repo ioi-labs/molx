@@ -14,17 +14,17 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 
-	"nexora-crawl/batch"
-	"nexora-crawl/config"
-	"nexora-crawl/enrich"
-	"nexora-crawl/handlers"
-	"nexora-crawl/internal/searchfactory"
-	localMiddleware "nexora-crawl/middleware"
-	"nexora-crawl/memstats"
-	"nexora-crawl/obscura"
-	"nexora-crawl/scraper"
-	"nexora-crawl/search"
-	"nexora-crawl/telemetry"
+	"molx/batch"
+	"molx/config"
+	"molx/enrich"
+	"molx/handlers"
+	"molx/internal/searchfactory"
+	localMiddleware "molx/middleware"
+	"molx/memstats"
+	"molx/obscura"
+	"molx/scraper"
+	"molx/search"
+	"molx/telemetry"
 )
 
 func main() {
@@ -40,7 +40,7 @@ func main() {
 		defer shutdownOtel(ctx)
 	}
 
-	slog.Info("nexora-crawl starting", "port", cfg.Port, "obscura", cfg.ObscuraBinaryPath, "otel_endpoint", cfg.OTelEndpoint)
+	slog.Info("molx starting", "port", cfg.Port, "obscura", cfg.ObscuraBinaryPath, "otel_endpoint", cfg.OTelEndpoint)
 	memstats.Log("memory at startup")
 
 	client := obscura.NewClient(cfg.ObscuraBinaryPath, cfg.Timeout)
@@ -57,7 +57,7 @@ func main() {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
-	r.Use(telemetry.ChiMiddleware("nexora-crawl"))
+	r.Use(telemetry.ChiMiddleware("molx"))
 	r.Use(requestLogger)
 	r.Use(middleware.Recoverer)
 

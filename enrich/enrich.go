@@ -14,12 +14,12 @@ import (
 
 	"github.com/google/uuid"
 
-	"nexora-crawl/config"
-	"nexora-crawl/models"
-	"nexora-crawl/obscura"
-	"nexora-crawl/scraper"
-	"nexora-crawl/search"
-	"nexora-crawl/validator"
+	"molx/config"
+	"molx/models"
+	"molx/obscura"
+	"molx/scraper"
+	"molx/search"
+	"molx/validator"
 )
 
 // Config for the LLM enrichment endpoint.

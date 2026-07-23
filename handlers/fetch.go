@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"time"
 
-	"nexora-crawl/config"
-	"nexora-crawl/middleware"
-	"nexora-crawl/models"
-	"nexora-crawl/obscura"
-	"nexora-crawl/validator"
+	"molx/config"
+	"molx/middleware"
+	"molx/models"
+	"molx/obscura"
+	"molx/validator"
 )
 
 type FetchHandler struct {

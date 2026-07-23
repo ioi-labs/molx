@@ -1,5 +1,5 @@
 # Binaries
-nexora-crawl
+molx
 *.exe
 
 # Dependency binaries (should be copied/provided at deploy time)

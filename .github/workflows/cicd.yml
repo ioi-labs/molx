@@ -43,22 +43,22 @@ jobs:
         include:
           - goos: linux
             goarch: amd64
-            archive: nexora-crawl-linux-amd64
+            archive: molx-linux-amd64
             artifact: dist-linux-amd64
             obscura_asset: obscura-x86_64-linux.tar.gz
           - goos: linux
             goarch: arm64
-            archive: nexora-crawl-linux-arm64
+            archive: molx-linux-arm64
             artifact: dist-linux-arm64
             obscura_asset: obscura-aarch64-linux.tar.gz
           - goos: darwin
             goarch: amd64
-            archive: nexora-crawl-macos-x86_64
+            archive: molx-macos-x86_64
             artifact: dist-macos-x86_64
             obscura_asset: obscura-x86_64-macos.tar.gz
           - goos: darwin
             goarch: arm64
-            archive: nexora-crawl-macos-arm64
+            archive: molx-macos-arm64
             artifact: dist-macos-arm64
             obscura_asset: obscura-aarch64-macos.tar.gz
     steps:
@@ -85,12 +85,12 @@ jobs:
         run: |
           output="${{ matrix.archive }}"
           mkdir -p "${output}/deps" "${output}/docs"
-          CGO_ENABLED=0 go build -ldflags="-s -w" -o "${output}/nexora-crawl" .
+          CGO_ENABLED=0 go build -ldflags="-s -w" -o "${output}/molx" .
           cp "deps/obscura/${{ matrix.goos }}/${{ matrix.goarch }}/obscura" "${output}/deps/obscura"
           cp "deps/obscura/${{ matrix.goos }}/${{ matrix.goarch }}/obscura-worker" "${output}/deps/obscura-worker"
           cp docs/openapi.yaml "${output}/docs/openapi.yaml"
           cp deps/scalar-standalone.js "${output}/deps/scalar-standalone.js"
-          chmod +x "${output}/nexora-crawl" "${output}/deps/obscura" "${output}/deps/obscura-worker"
+          chmod +x "${output}/molx" "${output}/deps/obscura" "${output}/deps/obscura-worker"
           tar -czf "${output}.tar.gz" "${output}"
 
       - name: Upload dist artifact
@@ -133,8 +133,8 @@ jobs:
 
       - name: Make binaries executable
         run: |
-          chmod +x dist/linux/amd64/nexora-crawl dist/linux/amd64/deps/obscura dist/linux/amd64/deps/obscura-worker
-          chmod +x dist/linux/arm64/nexora-crawl dist/linux/arm64/deps/obscura dist/linux/arm64/deps/obscura-worker
+          chmod +x dist/linux/amd64/molx dist/linux/amd64/deps/obscura dist/linux/amd64/deps/obscura-worker
+          chmod +x dist/linux/arm64/molx dist/linux/arm64/deps/obscura dist/linux/arm64/deps/obscura-worker
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -196,8 +196,8 @@ jobs:
 
       - name: Make binaries executable
         run: |
-          chmod +x dist/linux/amd64/nexora-crawl dist/linux/amd64/deps/obscura dist/linux/amd64/deps/obscura-worker
-          chmod +x dist/linux/arm64/nexora-crawl dist/linux/arm64/deps/obscura dist/linux/arm64/deps/obscura-worker
+          chmod +x dist/linux/amd64/molx dist/linux/amd64/deps/obscura dist/linux/amd64/deps/obscura-worker
+          chmod +x dist/linux/arm64/molx dist/linux/arm64/deps/obscura dist/linux/arm64/deps/obscura-worker
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3

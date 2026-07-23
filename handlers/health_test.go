@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"nexora-crawl/config"
+	"molx/config"
 )
 
 func TestHealthHandler_OK(t *testing.T) {

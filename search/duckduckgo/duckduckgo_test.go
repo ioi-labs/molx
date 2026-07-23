@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"nexora-crawl/search"
+	"molx/search"
 )
 
 func readFixture(t *testing.T, name string) string {

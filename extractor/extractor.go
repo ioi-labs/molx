@@ -7,7 +7,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 
-	"nexora-crawl/models"
+	"molx/models"
 )
 
 // ponytail: helper to pick first non-empty string.

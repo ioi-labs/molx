@@ -1,4 +1,4 @@
-module nexora-crawl
+module molx
 
 go 1.25.0
 
@@ -7,6 +7,7 @@ require github.com/go-chi/chi/v5 v5.1.0
 require (
 	github.com/PuerkitoBio/goquery v1.12.0
 	github.com/go-chi/cors v1.2.1
+	github.com/goccy/go-yaml v1.19.2
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
@@ -23,7 +24,6 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
-	github.com/goccy/go-yaml v1.19.2 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.29.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.44.0 // indirect

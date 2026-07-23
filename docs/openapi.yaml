@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: Nexora Crawl API
+  title: Molx API
   description: REST API wrapper for the Obscura headless browser CLI.
   version: 1.0.0
 tags:

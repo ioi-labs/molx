@@ -10,7 +10,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 
-	"nexora-crawl/search"
+	"molx/search"
 )
 
 const (

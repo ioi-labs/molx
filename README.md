@@ -1,10 +1,10 @@
-# Nexora Crawl
+# Molx
 
-A self-hostable alternative to Firecrawl. Nexora Crawl is a simple HTTP service that turns web pages into clean, structured data. You give it a URL, and it returns markdown, HTML, plain text, links, or metadata. It can also search the web and optionally scrape every result.
+A self-hostable alternative to Firecrawl. Molx is a simple HTTP service that turns web pages into clean, structured data. You give it a URL, and it returns markdown, HTML, plain text, links, or metadata. It can also search the web and optionally scrape every result.
 
 Built on top of [Obscura](https://github.com/berstend/obscura) for headless browser rendering. Web search is performed natively through Brave, DuckDuckGo, and Startpage (no external SearXNG instance required).
 
-Source code: [https://github.com/ioi-labs/nexora-crawl](https://github.com/ioi-labs/nexora-crawl)
+Source code: [https://github.com/ioi-labs/molx](https://github.com/ioi-labs/molx)
 
 Interactive API documentation is available at `/reference` once the server is running.
 
@@ -30,7 +30,7 @@ The easiest way to run the server is with the published container image.
 docker run -d \
   -p 8080:8080 \
   -e API_KEY=your-secret-key \
-  ghcr.io/ioi-labs/nexora-crawl:latest
+  ghcr.io/ioi-labs/molx:latest
 ```
 
 Then open `http://localhost:8080/reference` for the interactive API docs.
@@ -192,7 +192,7 @@ deps/obscura/linux/arm64/obscura-worker
 Then build locally:
 
 ```bash
-docker buildx build --platform linux/amd64,linux/arm64 -t nexora-crawl:latest .
+docker buildx build --platform linux/amd64,linux/arm64 -t molx:latest .
 ```
 
 ---
@@ -203,7 +203,7 @@ This project is supported by:
 
 > **[Your company name here]**
 >
-> Interested in sponsoring Nexora Crawl? Open an issue or email us at hi@ioi.co.id.
+> Interested in sponsoring Molx? Open an issue or email us at hi@ioi.co.id.
 
 ---
 

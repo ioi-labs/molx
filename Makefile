@@ -1,6 +1,6 @@
 .PHONY: default help build run clean lint test release
 
-APP_NAME := nexora-crawl
+APP_NAME := molx
 # Default to amd64 for local builds. Override for other arches, e.g.:
 #   make deps OBSCURA_BIN=../obscura/target/release/obscura OBSCURA_ARCH=arm64
 OBSCURA_BIN := ../obscura/target/release/obscura

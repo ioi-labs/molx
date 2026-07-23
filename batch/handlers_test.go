@@ -12,9 +12,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"nexora-crawl/config"
-	"nexora-crawl/models"
-	"nexora-crawl/obscura"
+	"molx/config"
+	"molx/models"
+	"molx/obscura"
 )
 
 // fakeFetcher is a stub Obscura fetcher for batch tests.

@@ -8,8 +8,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"nexora-crawl/middleware"
-	"nexora-crawl/models"
+	"molx/middleware"
+	"molx/models"
 )
 
 // CreateHandler serves POST /enrich.

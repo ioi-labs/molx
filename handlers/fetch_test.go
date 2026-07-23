@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"nexora-crawl/config"
-	"nexora-crawl/models"
+	"molx/config"
+	"molx/models"
 )
 
 // fakeFetcher is a stub Obscura fetcher for handler tests.

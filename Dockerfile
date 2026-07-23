@@ -18,7 +18,7 @@ RUN go mod download
 COPY . .
 
 # Build the Go binary. CGO_ENABLED=0 for static binary.
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o nexora-crawl .
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o molx .
 
 # -----------------------------------------------------------------------------
 # Runtime stage
@@ -34,7 +34,7 @@ RUN apk add --no-cache ca-certificates
 RUN adduser -D -u 1000 appuser
 
 # Copy built binary
-COPY --from=builder /app/nexora-crawl /app/nexora-crawl
+COPY --from=builder /app/molx /app/molx
 
 # Copy runtime assets (OpenAPI spec and Scalar bundle) used by HTTP handlers
 COPY --from=builder /app/docs/openapi.yaml /app/docs/openapi.yaml
@@ -52,7 +52,7 @@ COPY ${OBSCURA_DIR}/${TARGETARCH}/obscura /app/deps/obscura
 COPY ${OBSCURA_DIR}/${TARGETARCH}/obscura-worker /app/deps/obscura-worker
 
 # Ensure binaries are executable
-RUN chmod +x /app/deps/obscura /app/deps/obscura-worker /app/nexora-crawl
+RUN chmod +x /app/deps/obscura /app/deps/obscura-worker /app/molx
 
 # Switch to non-root user
 USER appuser
@@ -61,4 +61,4 @@ USER appuser
 EXPOSE 8080
 
 # Run the server
-ENTRYPOINT ["/app/nexora-crawl"]
+ENTRYPOINT ["/app/molx"]
