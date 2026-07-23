@@ -11,7 +11,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/github/v/release/ioi-labs/molx?logo=github" alt="GitHub release">
-  <img src="https://img.shields.io/github/license/ioi-labs/molx" alt="License">
+  <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT">
   <img src="https://img.shields.io/badge/Go-1.23%2B-blue?logo=go" alt="Go version">
 </p>
 
