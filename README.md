@@ -6,7 +6,8 @@
 
 <p align="center">
   Open-source web scraping API that turns any page into clean markdown, HTML, text, links, or structured JSON.<br>
-  Scrape, search, batch-process, and enrich content with LLMs — on your own infrastructure.
+  Scrape, search, batch-process, and enrich content with LLMs — on your own infrastructure.<br>
+  <strong>Lightweight:</strong> idle memory ~3 MB, working memory ~7 MB.
 </p>
 
 <p align="center">
@@ -34,6 +35,7 @@ Built on top of [Obscura](https://github.com/berstend/obscura) for headless brow
 | **Hosting** | Self-hosted on your own server or cloud | Managed SaaS |
 | **Data privacy** | Your data never leaves your infrastructure | Sent to vendor infrastructure |
 | **Cost control** | No per-credit billing; run on your own hardware | Usage-based paid plans |
+| **Memory footprint** | Idle ~3 MB, working ~7 MB | Larger managed runtime |
 | **Web search** | Native Brave, DuckDuckGo, Startpage support | Available on some plans |
 | **LLM enrichment** | Any OpenAI-compatible provider | Built-in or provider-specific |
 | **Deployment** | Single Docker container or Go binary | Managed only |
