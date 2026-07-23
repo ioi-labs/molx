@@ -271,6 +271,18 @@ docker buildx build --platform linux/amd64,linux/arm64 -t molx:latest .
 
 ---
 
+## Roadmap
+
+Planned features, in rough order:
+
+- **Optional Redis cache** — cache scrape results and job status without making Redis a hard dependency. Molx keeps working as a single binary when Redis is not configured.
+
+- **Optional Postgres persistence** — store batch and enrich jobs in Postgres so they survive restarts and redeploys. In-memory mode stays available for simple, single-node deployments.
+
+- **Pluggable scrapers** — let users ship custom scraper plugins as executables (for example, Go binaries backed by Playwright) and map them to specific domains. Molx runs matching plugins under its internal engine. Plugins are loaded at startup, so a restart is needed after adding or updating one.
+
+---
+
 ## Sponsor
 
 This project is supported by:
