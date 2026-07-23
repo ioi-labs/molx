@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/molx.png" alt="Molx logo" width="160">
+</p>
+
 # Molx
 
 A self-hostable alternative to Firecrawl. Molx is a simple HTTP service that turns web pages into clean, structured data. You give it a URL, and it returns markdown, HTML, plain text, links, or metadata. It can also search the web and optionally scrape every result.
