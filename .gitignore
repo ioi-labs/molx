@@ -19,3 +19,6 @@ deps/obscura/darwin/*/obscura-worker
 
 # Go
 vendor/
+
+# macOS
+.DS_Store
