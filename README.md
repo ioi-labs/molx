@@ -279,6 +279,8 @@ Planned features, in rough order:
 
 - **Optional Postgres persistence** — store batch and enrich jobs in Postgres so they survive restarts and redeploys. In-memory mode stays available for simple, single-node deployments.
 
+- **Advanced proxy integration** — support rotating proxies, proxy pools, and per-domain proxy rules for scraping at scale.
+
 - **Pluggable scrapers** — let users ship custom scraper plugins as executables (for example, Go binaries backed by Playwright) and map them to specific domains. Molx runs matching plugins under its internal engine. Plugins are loaded at startup, so a restart is needed after adding or updating one.
 
 ---
