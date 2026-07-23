@@ -7,7 +7,7 @@
 <p align="center">
   Open-source web scraping API that turns any page into clean markdown, HTML, text, links, or structured JSON.<br>
   Scrape, search, batch-process, and enrich content with LLMs — on your own infrastructure.<br>
-  <strong>Lightweight:</strong> idle memory ~3 MB, working memory ~7 MB.
+  Runs lean: idle around 3 MB, typical workload around 7 MB.
 </p>
 
 <p align="center">
