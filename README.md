@@ -1,27 +1,56 @@
 <p align="center">
-  <img src="assets/molx.png" alt="Molx logo" width="160">
+  <img src="assets/molx.png" alt="Molx - self-hosted Firecrawl alternative" width="160">
 </p>
 
-# Molx
+<h1 align="center">Molx — Self-Hosted Firecrawl Alternative</h1>
 
-A self-hostable alternative to Firecrawl. Molx is a simple HTTP service that turns web pages into clean, structured data. You give it a URL, and it returns markdown, HTML, plain text, links, or metadata. It can also search the web and optionally scrape every result.
+<p align="center">
+  Open-source web scraping API that turns any page into clean markdown, HTML, text, links, or structured JSON.<br>
+  Scrape, search, batch-process, and enrich content with LLMs — on your own infrastructure.
+</p>
 
-Built on top of [Obscura](https://github.com/berstend/obscura) for headless browser rendering. Web search is performed natively through Brave, DuckDuckGo, and Startpage (no external SearXNG instance required).
-
-Source code: [https://github.com/ioi-labs/molx](https://github.com/ioi-labs/molx)
-
-Interactive API documentation is available at `/reference` once the server is running.
+<p align="center">
+  <img src="https://img.shields.io/github/v/release/ioi-labs/molx?logo=github" alt="GitHub release">
+  <img src="https://img.shields.io/github/license/ioi-labs/molx" alt="License">
+  <img src="https://img.shields.io/badge/Go-1.23%2B-blue?logo=go" alt="Go version">
+</p>
 
 ---
 
-## What it does
+## What is Molx?
 
-- **Scrape one page**: fetch rendered content as markdown, HTML, text, or links.
-- **Batch scrape**: process many URLs in the background and poll for results.
-- **Search the web**: query Brave, DuckDuckGo, and Startpage natively and optionally scrape each result page.
-- **Enrich with LLM**: search or scrape pages, then ask an OpenAI-compatible LLM to extract structured data from the content.
-- **API key protection**: lock the API with a bearer token.
-- **OpenTelemetry support**: send traces to any OTLP-compatible backend (optional).
+**Molx is a self-hosted, open-source alternative to Firecrawl.** It is a simple HTTP service that fetches web pages through a headless browser, extracts clean structured data, and returns it as markdown, HTML, plain text, links, or metadata.
+
+Molx can also search the web natively — no external SearXNG instance required — and optionally scrape every search result. With the enrich endpoint, you can pipe scraped content into any OpenAI-compatible LLM and extract structured JSON using a JSON Schema.
+
+Built on top of [Obscura](https://github.com/berstend/obscura) for headless browser rendering. Web search runs through Brave, DuckDuckGo, and Startpage.
+
+---
+
+## Why choose Molx over Firecrawl?
+
+| | Molx | Firecrawl |
+|---|---|---|
+| **Hosting** | Self-hosted on your own server or cloud | Managed SaaS |
+| **Data privacy** | Your data never leaves your infrastructure | Sent to vendor infrastructure |
+| **Cost control** | No per-credit billing; run on your own hardware | Usage-based paid plans |
+| **Web search** | Native Brave, DuckDuckGo, Startpage support | Available on some plans |
+| **LLM enrichment** | Any OpenAI-compatible provider | Built-in or provider-specific |
+| **Deployment** | Single Docker container or Go binary | Managed only |
+| **Observability** | OpenTelemetry built in | Vendor dashboards |
+
+If you are looking for a **Firecrawl alternative** that you can host yourself, Molx gives you the same core capabilities with full control over cost, privacy, and uptime.
+
+---
+
+## Features
+
+- **Scrape one page** — fetch rendered content as markdown, HTML, text, or links.
+- **Batch scrape** — process many URLs in the background and poll for results.
+- **Search the web** — query Brave, DuckDuckGo, and Startpage natively and optionally scrape each result page.
+- **Enrich with LLM** — search or scrape pages, then ask an OpenAI-compatible LLM to extract structured data from the content.
+- **API key protection** — lock the API with a bearer token.
+- **OpenTelemetry support** — send traces to any OTLP-compatible backend (optional).
 
 ---
 
@@ -40,6 +69,16 @@ docker run -d \
 
 Then open `http://localhost:8080/reference` for the interactive API docs.
 
+### Run with Docker Compose
+
+```bash
+# Copy the example environment file
+cp .env.example .env
+
+# Edit .env and set API_KEY, then start the stack
+docker compose up -d
+```
+
 ### Run from source
 
 You need Go 1.23 or later and the Obscura binaries for your platform.
@@ -51,30 +90,6 @@ make deps
 # Start the server
 API_KEY=your-secret-key go run .
 ```
-
----
-
-## Configuration
-
-Set these environment variables to configure the server.
-
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `PORT` | `8080` | HTTP port |
-| `API_KEY` | empty | Bearer token required by all scrape/search endpoints |
-| `OBSCURA_BIN` | `deps/obscura` | Path to the Obscura binary |
-| `TIMEOUT_MS` | `60000` | Default timeout for Obscura calls |
-| `SEARCH_ENGINES` | `duckduckgo,brave,startpage` | Comma-separated native engines |
-| `SEARCH_TIMEOUT_MS` | `30000` | Timeout per engine query |
-| `SEARCH_DEFAULT_LIMIT` | `10` | Default number of search results |
-| `PROXY` | empty | Optional proxy for search and scrape |
-| `OTEL_ENDPOINT` | empty | OTLP endpoint for traces |
-| `ALLOWED_ORIGIN` | empty | CORS origins, comma separated |
-| `LLM_BASE_URL` | empty | OpenAI-compatible chat completions base URL (e.g. `https://api.openai.com`) |
-| `LLM_API_KEY` | empty | API key for the LLM provider |
-| `LLM_MODEL` | empty | Model name, e.g. `gpt-4o-mini`. Required for `onlyCleanContent`. |
 
 ---
 
@@ -90,7 +105,7 @@ Authorization: Bearer your-secret-key
 
 ---
 
-## Endpoints
+## API endpoints
 
 ### Health check
 
@@ -250,6 +265,28 @@ Response:
 
 ---
 
+## Configuration
+
+Set these environment variables to configure the server.
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `PORT` | `8080` | HTTP port |
+| `API_KEY` | empty | Bearer token required by all scrape/search endpoints |
+| `OBSCURA_BIN` | `deps/obscura` | Path to the Obscura binary |
+| `TIMEOUT_MS` | `60000` | Default timeout for Obscura calls |
+| `SEARCH_ENGINES` | `duckduckgo,brave,startpage` | Comma-separated native engines |
+| `SEARCH_TIMEOUT_MS` | `30000` | Timeout per engine query |
+| `SEARCH_DEFAULT_LIMIT` | `10` | Default number of search results |
+| `PROXY` | empty | Optional proxy for search and scrape |
+| `OTEL_ENDPOINT` | empty | OTLP endpoint for traces |
+| `ALLOWED_ORIGIN` | empty | CORS origins, comma separated |
+| `LLM_BASE_URL` | empty | OpenAI-compatible chat completions base URL (e.g. `https://api.openai.com`) |
+| `LLM_API_KEY` | empty | API key for the LLM provider |
+| `LLM_MODEL` | empty | Model name, e.g. `gpt-4o-mini`. Required for `onlyCleanContent` |
+
+---
+
 ## Building the Docker image
 
 The Dockerfile supports two architectures: `linux/amd64` and `linux/arm64`.
@@ -282,6 +319,40 @@ Planned features, in rough order:
 - **Advanced proxy integration** — support rotating proxies, proxy pools, and per-domain proxy rules for scraping at scale.
 
 - **Pluggable scrapers** — let users ship custom scraper plugins as executables (for example, Go binaries backed by Playwright) and map them to specific domains. Molx runs matching plugins under its internal engine. Plugins are loaded at startup, so a restart is needed after adding or updating one.
+
+---
+
+## FAQ
+
+### Is Molx a Firecrawl alternative?
+
+Yes. Molx provides the same core capabilities as Firecrawl — scrape, search, batch-process, and LLM-enrich web content — but it is fully self-hosted and open source.
+
+### Can I self-host Molx?
+
+Yes. Molx runs as a single Docker container or as a standalone Go binary. You control your own data, costs, and uptime.
+
+### Does Molx require SearXNG or another search aggregator?
+
+No. Molx searches the web natively through Brave, DuckDuckGo, and Startpage. No external SearXNG instance is required.
+
+### What LLM providers work with Molx?
+
+Any provider with an OpenAI-compatible chat completions API, such as OpenAI, Groq, Together AI, or a self-hosted vLLM instance.
+
+### How is Molx different from Firecrawl?
+
+Molx is self-hosted, open source, and gives you native web search, OpenTelemetry observability, and the freedom to plug in any LLM provider. Firecrawl is a managed SaaS with usage-based pricing.
+
+### Is Molx free to use?
+
+Yes. Molx is released under the MIT License. You pay only for the infrastructure you run it on.
+
+---
+
+## Contributing
+
+See [CONTRIBUTION.md](CONTRIBUTION.md) for setup instructions, code style, and how to open a pull request.
 
 ---
 
