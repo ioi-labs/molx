@@ -84,8 +84,8 @@ docker compose up -d
 You need Go 1.23 or later and the Obscura binaries for your platform.
 
 ```bash
-# Copy Obscura into the deps folder
-make deps
+# Download Obscura binaries for your OS/arch
+make setup
 
 # Start the server
 API_KEY=your-secret-key go run .

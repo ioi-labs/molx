@@ -9,8 +9,8 @@ Thanks for your interest in making Molx better. This project is a small, focused
 You need Go 1.23 or later and the Obscura binaries for your platform.
 
 ```bash
-# Copy Obscura into the deps folder
-make deps
+# Download Obscura binaries for your OS/arch
+make setup
 
 # Run the server locally
 API_KEY=your-secret-key go run .
